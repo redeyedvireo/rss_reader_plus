@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/services/feed_database.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
@@ -22,8 +24,35 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var mediaQuery = MediaQuery.of(context);
+    FeedDatabase feedDb = Provider.of<FeedDatabase>(context, listen: false);
+    
+    return FutureBuilder(
+      future: _mainInit(feedDb),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Center(child: Text(''));
 
+          case ConnectionState.active:
+            return Center(child: Text(''),);
+
+          case ConnectionState.done:
+            return _buildAll(context);
+
+          default:
+            return Center(child: Text(''));
+        }
+      }
+    );
+  }
+
+  Future<void> _mainInit(FeedDatabase feedDb) async {
+    final sqlfliteDb = await FeedDatabase.init();
+    feedDb.setSqlfliteDb(sqlfliteDb);
+  }
+
+  Widget _buildAll(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(this.title),

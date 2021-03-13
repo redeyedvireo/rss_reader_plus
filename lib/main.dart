@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
-import 'package:rss_reader_plus/services/database.dart';
+import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 
 import './pages/home_page.dart';
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(providers: [
-      Provider<Database>(create: (context) => Database()),
+      Provider<FeedDatabase>(create: (context) => FeedDatabase()),
       Provider<FeedService>(create: (context) => FeedService(context))
     ],
     child: MaterialApp(

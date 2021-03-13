@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rss_reader_plus/models/feed.dart';
-import 'package:rss_reader_plus/services/database.dart';
+import '../models/feed.dart';
+import 'package:rss_reader_plus/services/feed_database.dart';
 
 
 class FeedService {
-  Database db;
+  FeedDatabase db;
+  List<Feed> _feeds;
   
   FeedService(BuildContext context) {
-    db = Provider.of<Database>(context, listen: false);
+    db = Provider.of<FeedDatabase>(context, listen: false);
+    _feeds = [];
   }
 
-  List<Feed> getFeeds() {
-    List<Feed> someFeeds = [];
-
-    // Dummy data
-    someFeeds.add(Feed(id: 1, name: 'Food feed', description: 'A feed about food'));
-    someFeeds.add(Feed(id: 1, name: 'Car feed', description: 'Read about cars here'));
-    someFeeds.add(Feed(id: 1, name: 'Gadget feed', description: 'Learn about gadgets'));
-
-    return someFeeds;
+  Future<List<Feed>> getFeeds() async {
+    if (_feeds.length == 0) {
+      _feeds = await db.readFeeds();
+    }
+    
+    return _feeds;
   }
 }
