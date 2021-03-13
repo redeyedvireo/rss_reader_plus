@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/models/feed.dart';
+import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/services/database.dart';
+import 'package:rss_reader_plus/services/feed_service.dart';
 
 import './pages/home_page.dart';
 
-void main() {
+void main() async {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MultiProvider(providers: [
+      Provider<Database>(create: (context) => Database()),
+      Provider<FeedService>(create: (context) => FeedService(context))
+    ],
+    child: MaterialApp(
       title: 'RssReader Plus',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Main Page'),
-    );
+      home: MyHomePage(title: 'Rss Reader Plus'),
+    ));
   }
 }

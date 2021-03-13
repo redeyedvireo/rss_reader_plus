@@ -3,6 +3,9 @@ import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
 
+// Pane size constraints
+const feedPaneWidth = 200.0;
+const feedItemPaneHeight = 300.0;
 class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -19,23 +22,36 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var mediaQuery = MediaQuery.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(this.title),
       ),
       body: Container(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
-            FeedListWidget(title: 'Feed List'),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                FeedItemListWidget(),
-                FeedItemViewWidget(),
-              ],
+            SizedBox(
+              width: feedPaneWidth,
+              child: FeedListWidget(),
+            ),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  SizedBox(
+                    height: feedItemPaneHeight,
+                    child: FeedItemListWidget()
+                  ),
+                  Expanded(
+                    child: FeedItemViewWidget()
+                  )
+                ],
+              ),
             )
+            
           ],
         ),
       ),
