@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/models/feed_item.dart';
 import '../models/feed.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 
@@ -19,5 +20,10 @@ class FeedService {
     }
     
     return _feeds;
+  }
+
+  Future<List<FeedItem>> getFeedItems(int feedId) async {
+    // TODO: Does it make sense to cache feed items for the current feed?
+    return await db.readFeedItems(feedId);
   }
 }

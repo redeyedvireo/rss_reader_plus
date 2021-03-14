@@ -1,15 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/models/app_state.dart';
+import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/services/feed_service.dart';
 
-class FeedItemListWidget extends StatelessWidget {
+class FeedItemListWidget extends StatefulWidget {
+  @override
+  _FeedItemListWidgetState createState() => _FeedItemListWidgetState();
+}
+
+class _FeedItemListWidgetState extends State<FeedItemListWidget> {
+  ScrollController _controller;
+  double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
+  List<FeedItem> _feedItems = [];
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    FeedService _feedService = Provider.of<FeedService>(context);
+
+    
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return FutureBuilder(
+          future: _loadFeedItems(_feedService, appState.selectedFeed),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                case ConnectionState.waiting:
+                  return Center(child: Text(''));
+
+                case ConnectionState.active:
+                  return Center(child: Text(''),);
+
+                case ConnectionState.done:
+                  return _buildAll(context, appState);
+
+                default:
+                  return Center(child: Text(''));
+              }
+          },
+        ); 
+      },
+    );
+  }
+
+  Future<void> _loadFeedItems(FeedService feedService, int feedId) async {
+    if (feedId <= 0) {
+      // Invalid feed ID
+      _feedItems = [];
+    } else {
+      _feedItems = await feedService.getFeedItems(feedId);
+    }
+  }
+
+  Widget _buildAll(BuildContext context, AppState appState) {
+    if (_feedItems.length == 0) {
+      return Center(child: Text('No feed items'));
+    } else {
+      return Container(
         decoration: BoxDecoration(
             border: Border.all(
                 color: Colors.black, width: 1.0, style: BorderStyle.solid)),
-        child: Center(
-          child: Text('Feed Item List Widget'),
-        ),
+        child: ListView.separated(
+          itemCount: _feedItems.length,
+          separatorBuilder: (BuildContext context, int index) => Divider(),
+          itemBuilder: (BuildContext context, int index) {
+            return _buildFeedItemRow(context, _feedItems[index]);
+          },
+        )
       );
+    }
+  }
+
+  Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      child: GestureDetector(
+        onTap: () async {
+          print("Tapped on feed item ${feedItem.guid}");
+          _previousScrollPosition = _controller.position.pixels;
+        },
+        child: Row(
+          children: <Widget>[
+            Text(feedItem.title),
+          ],
+        ),
+      ),
+    );
   }
 }

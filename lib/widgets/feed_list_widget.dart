@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 
@@ -19,6 +20,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   @override
   Widget build(BuildContext context) {
     FeedService _feedService = Provider.of<FeedService>(context);
+    AppState appState = Provider.of<AppState>(context);
 
     return FutureBuilder(
       future: _loadFeeds(_feedService),
@@ -32,7 +34,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
               return Center(child: Text(''),);
 
             case ConnectionState.done:
-              return _buildAll(context, _feeds);
+              return _buildAll(context, _feeds, appState);
 
             default:
               return Center(child: Text(''));
@@ -45,7 +47,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
     _feeds = await feedService.getFeeds();
   }
 
-  Widget _buildAll(BuildContext context, List<Feed> feeds) {
+  Widget _buildAll(BuildContext context, List<Feed> feeds, AppState appState) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
 
     return Container(
@@ -57,19 +59,20 @@ class _FeedListWidgetState extends State<FeedListWidget> {
         controller: _controller,
         separatorBuilder: (BuildContext context, int index) => Divider(),
         itemBuilder: (BuildContext context, int index) {
-          return _buildFeedRow(context, feeds[index]);
+          return _buildFeedRow(context, feeds[index], appState);
         },
       ),
     );
   }
 
-  Widget _buildFeedRow(BuildContext context, Feed feed) {
+  Widget _buildFeedRow(BuildContext context, Feed feed, AppState appState) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       child: GestureDetector(
         onTap: () async {
           print("Tapped on feed ${feed.name}");
           _previousScrollPosition = _controller.position.pixels;
+          appState.selectFeed(feed.id);
         },
         child: Row(
           children: <Widget>[

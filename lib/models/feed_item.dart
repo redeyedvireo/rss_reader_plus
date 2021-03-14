@@ -21,5 +21,25 @@ class FeedItem {
   
   bool read;                // true if the feed item has been read
 
+  FeedItem({
+    this.title,
+    this.author,
+    this.link,
+    this.description,
+    this.encodedContent,
+    this.categories,
+    this.thumbnailLink,
+    this.thumbnailWidth,
+    this.thumbnailHeight,
+    this.guid,
+    this.feedburnerOrigLink,
+    this.enclosureLink,
+    this.enclosureLength,
+    this.enclosureType,
+    this.parentFeedId,
+    this.webPageLink,
+    this.read
+  });
+
   get hasEnclosure => enclosureLink.length > 0;
 }

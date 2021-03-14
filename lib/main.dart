@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rss_reader_plus/models/feed.dart';
-import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 
@@ -16,14 +15,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(providers: [
       Provider<FeedDatabase>(create: (context) => FeedDatabase()),
-      Provider<FeedService>(create: (context) => FeedService(context))
+      Provider<FeedService>(create: (context) => FeedService(context)),
+      ChangeNotifierProvider<AppState>(create: (context) => AppState())
     ],
     child: MaterialApp(
       title: 'RssReader Plus',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Rss Reader Plus'),
+      home: MyHomePage(),
     ));
   }
 }

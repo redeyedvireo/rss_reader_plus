@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/util/utils.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -103,12 +104,59 @@ class FeedDatabase {
 
     // feedMapList is an array of maps
     for (var feedMap in feedMapList) {
-      final feed = Feed(name: feedMap['name'],
-                        title: feedMap['title'],
-                        description: feedMap['description']);
+      final feed = Feed(
+        id: feedMap['feedid'],
+        name: feedMap['name'],
+        url: feedMap['url'],
+        dateAdded: DateTime.fromMillisecondsSinceEpoch(feedMap['added']),
+        lastUpdated: DateTime.fromMillisecondsSinceEpoch(feedMap['lastupdated']),
+        lastPurged: DateTime.fromMillisecondsSinceEpoch(feedMap['lastpurged']),
+        title: feedMap['title'],
+        language: feedMap['language'],
+        description: feedMap['description'],
+        webPageLink: feedMap['webpagelink']
+      );
+
       feeds.add(feed);
     }
 
     return feeds;
+  }
+
+  Future<List<FeedItem>> readFeedItems(int feedId) async {
+    String tableName = feedIdToString(feedId);
+    final feedItemMapList = await sqlfliteDb.rawQuery('select * from $tableName');
+
+    List<FeedItem> feedItems = [];
+
+    for (final feedItemMap in feedItemMapList) {
+      final feedItem = FeedItem(
+        title: feedItemMap['title'],
+        author: feedItemMap['author'],
+        link: feedItemMap['link'],
+        description: feedItemMap['description'],
+        encodedContent: feedItemMap['contentencoded'],
+        categories: _splitCategories(feedItemMap['categories']),
+        thumbnailLink: feedItemMap['thumbnaillink'],
+        thumbnailWidth: feedItemMap['thumbnailwidth'],
+        thumbnailHeight: feedItemMap['thumnailheight'],
+        guid: feedItemMap['guid'],
+        feedburnerOrigLink: feedItemMap['feedburneroriglink'],
+        enclosureLink: feedItemMap['enclosurelink'],
+        enclosureLength: feedItemMap['enclosurelength'],
+        enclosureType: feedItemMap['enclosuretype'],
+        parentFeedId: -1,
+        webPageLink: feedItemMap['link'],
+        read: feedItemMap['readflag'] == 1 ? true : false
+      );
+
+      feedItems.add(feedItem);
+    }
+
+    return feedItems;
+  }
+
+  List<String> _splitCategories(String categoryString) {
+    return categoryString.split(',');
   }
 }

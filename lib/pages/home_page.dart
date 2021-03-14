@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
@@ -8,23 +9,23 @@ import '../widgets/feed_item_view_widget.dart';
 // Pane size constraints
 const feedPaneWidth = 200.0;
 const feedItemPaneHeight = 300.0;
-class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  _MyHomePageState createState() => _MyHomePageState();
+}
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+class _MyHomePageState extends State<MyHomePage> {
 
-  final String title;
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     FeedDatabase feedDb = Provider.of<FeedDatabase>(context, listen: false);
+    AppState appState = Provider.of<AppState>(context);
     
     return FutureBuilder(
       future: _mainInit(feedDb),
@@ -55,7 +56,7 @@ class MyHomePage extends StatelessWidget {
   Widget _buildAll(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(this.title),
+        title: Text('RssReader Plus'),
       ),
       body: Container(
         child: Row(
