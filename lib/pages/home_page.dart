@@ -25,7 +25,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     FeedDatabase feedDb = Provider.of<FeedDatabase>(context, listen: false);
-    AppState appState = Provider.of<AppState>(context);
+    // AppState appState = Provider.of<AppState>(context);
     
     return FutureBuilder(
       future: _mainInit(feedDb),

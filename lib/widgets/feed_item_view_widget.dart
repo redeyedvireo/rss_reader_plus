@@ -29,11 +29,18 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   }
 
   Widget _buildAll(BuildContext context, FeedItem feedItem) {
+    String content;
+
+    content = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.link;
+
     return Scrollbar(
       isAlwaysShown: true,
       child: SingleChildScrollView(
         child: Html(
-          data: feedItem.encodedContent),
+          onLinkTap: (url) {
+            print('Link tapped: $url');
+          },
+          data: content),
       ),
     );
   }

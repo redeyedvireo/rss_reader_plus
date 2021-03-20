@@ -57,10 +57,9 @@ class _FeedListWidgetState extends State<FeedListWidget> {
       child: Scrollbar(
         isAlwaysShown: true,
         controller: _controller,
-        child: ListView.separated(
+        child: ListView.builder(
           itemCount: feeds.length,
           controller: _controller,
-          separatorBuilder: (BuildContext context, int index) => Divider(),
           itemBuilder: (BuildContext context, int index) {
             return _buildFeedRow(context, feeds[index], appState);
           },
@@ -71,7 +70,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
 
   Widget _buildFeedRow(BuildContext context, Feed feed, AppState appState) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       child: GestureDetector(
         onTap: () async {
           print("Tapped on feed ${feed.name}");
