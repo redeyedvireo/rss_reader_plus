@@ -71,7 +71,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
             itemCount: _feedItems.length,
             controller: _controller,
             itemBuilder: (BuildContext context, int index) {
-              return _buildFeedItemRow(context, _feedItems[index]);
+              return _buildFeedItemRow(context, _feedItems[index], appState);
             },
           )
         )
@@ -79,12 +79,13 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     }
   }
 
-  Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem) {
+  Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem, AppState appState) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
       child: GestureDetector(
         onTap: () async {
           print("Tapped on feed item ${feedItem.guid}");
+          appState.selectFeedItem(feedItem);
           _previousScrollPosition = _controller.position.pixels;
         },
         child: Row(

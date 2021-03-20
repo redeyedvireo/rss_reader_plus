@@ -1,16 +1,17 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:rss_reader_plus/models/feed_item.dart';
 
 class AppState extends ChangeNotifier{
   int selectedFeed;
-  String selectedFeedItem;
+  FeedItem selectedFeedItem;
 
   // TODO Eventually, many of these items will be stored in preferences, and reloaded
   // when the app starts.
   AppState() {
-    selectedFeed = 0;    // Indicate no feed selected.
-    selectedFeedItem = '';    // GUID of selected feed item
+    selectedFeed = 0;             // Indicate no feed selected.
+    selectedFeedItem;             // Selected feed item
   }
 
   void selectFeed(int feedId) {
@@ -18,7 +19,7 @@ class AppState extends ChangeNotifier{
     notifyListeners();
   }
 
-  void selectFeedItem(String feedItem) {
+  void selectFeedItem(FeedItem feedItem) {
     selectedFeedItem = feedItem;
     notifyListeners();
   }
