@@ -22,7 +22,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
         if (appState.selectedFeedItem != null) {
           return _buildAll(context, appState.selectedFeedItem);
         } else {
-          return Center(child: Text("No news item selected"),);
+          return Center(child: Text(""),);
         }
       }
     );

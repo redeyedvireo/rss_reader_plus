@@ -52,15 +52,19 @@ class _FeedListWidgetState extends State<FeedListWidget> {
 
     return Container(
       decoration: BoxDecoration(
-          border: Border.all(
-              color: Colors.black, width: 1.0, style: BorderStyle.solid)),
-      child: ListView.separated(
-        itemCount: feeds.length,
+        border: Border.all(
+            color: Colors.black, width: 1.0, style: BorderStyle.solid)),
+      child: Scrollbar(
+        isAlwaysShown: true,
         controller: _controller,
-        separatorBuilder: (BuildContext context, int index) => Divider(),
-        itemBuilder: (BuildContext context, int index) {
-          return _buildFeedRow(context, feeds[index], appState);
-        },
+        child: ListView.separated(
+          itemCount: feeds.length,
+          controller: _controller,
+          separatorBuilder: (BuildContext context, int index) => Divider(),
+          itemBuilder: (BuildContext context, int index) {
+            return _buildFeedRow(context, feeds[index], appState);
+          },
+        ),
       ),
     );
   }
@@ -76,7 +80,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
         },
         child: Row(
           children: <Widget>[
-            Text(feed.name),
+            Flexible(child: Text(feed.name, overflow: TextOverflow.ellipsis)),
           ],
         ),
       ),

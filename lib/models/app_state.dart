@@ -16,6 +16,11 @@ class AppState extends ChangeNotifier{
 
   void selectFeed(int feedId) {
     selectedFeed = feedId;
+
+    // When switching feeds, set the selected feed item to null (for now).
+    // TODO: Remember which feed item was selected per feed, and then reselect
+    // that one, when feeds are switched.
+    selectedFeedItem = null;
     notifyListeners();
   }
 
