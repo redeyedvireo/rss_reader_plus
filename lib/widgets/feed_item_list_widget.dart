@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
@@ -54,6 +55,8 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   }
 
   Widget _buildAll(BuildContext context, AppState appState) {
+    _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
+
     if (_feedItems.length == 0) {
       return Center(child: Text('No feed items'));
     } else {
@@ -61,12 +64,16 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
         decoration: BoxDecoration(
             border: Border.all(
                 color: Colors.black, width: 1.0, style: BorderStyle.solid)),
-        child: ListView.separated(
-          itemCount: _feedItems.length,
-          separatorBuilder: (BuildContext context, int index) => Divider(),
-          itemBuilder: (BuildContext context, int index) {
-            return _buildFeedItemRow(context, _feedItems[index]);
-          },
+        child: Scrollbar(
+          isAlwaysShown: true,
+          controller: _controller,
+          child:ListView.builder(
+            itemCount: _feedItems.length,
+            controller: _controller,
+            itemBuilder: (BuildContext context, int index) {
+              return _buildFeedItemRow(context, _feedItems[index]);
+            },
+          )
         )
       );
     }
@@ -74,7 +81,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
 
   Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
       child: GestureDetector(
         onTap: () async {
           print("Tapped on feed item ${feedItem.guid}");
@@ -82,7 +89,22 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
         },
         child: Row(
           children: <Widget>[
-            Text(feedItem.title),
+            Expanded(
+              flex: 5,
+              child: Text(feedItem.title, overflow: TextOverflow.ellipsis,),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(DateFormat('M/d/y h:mm a').format(feedItem.publicationDatetime), overflow: TextOverflow.ellipsis),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(feedItem.author, overflow: TextOverflow.ellipsis),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(feedItem.categories.join(' '), overflow: TextOverflow.ellipsis),
+            )
           ],
         ),
       ),

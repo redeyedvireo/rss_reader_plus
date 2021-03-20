@@ -130,6 +130,9 @@ class FeedDatabase {
     List<FeedItem> feedItems = [];
 
     for (final feedItemMap in feedItemMapList) {
+      int timestampRaw = feedItemMap['pubdatetime'];
+      int timestamp = timestampRaw * 1000;
+
       final feedItem = FeedItem(
         title: feedItemMap['title'],
         author: feedItemMap['author'],
@@ -137,6 +140,7 @@ class FeedDatabase {
         description: feedItemMap['description'],
         encodedContent: feedItemMap['contentencoded'],
         categories: _splitCategories(feedItemMap['categories']),
+        publicationDatetime: DateTime.fromMillisecondsSinceEpoch(timestamp),
         thumbnailLink: feedItemMap['thumbnaillink'],
         thumbnailWidth: feedItemMap['thumbnailwidth'],
         thumbnailHeight: feedItemMap['thumnailheight'],
