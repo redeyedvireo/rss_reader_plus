@@ -52,8 +52,8 @@ class _FeedListWidgetState extends State<FeedListWidget> {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(
-            color: Colors.black, width: 1.0, style: BorderStyle.solid)),
+        border: Border(right: BorderSide(color: Theme.of(context).dividerColor))
+            ),
       child: Scrollbar(
         isAlwaysShown: true,
         controller: _controller,
