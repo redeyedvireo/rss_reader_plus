@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
+import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
@@ -68,29 +69,37 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Container(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          children: <Widget>[
-            SizedBox(
-              width: feedPaneWidth,
-              child: FeedListWidget(),
-            ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             Expanded(
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
-                children: [
+                children: <Widget>[
                   SizedBox(
-                    height: feedItemPaneHeight,
-                    child: FeedItemListWidget()
+                    width: feedPaneWidth,
+                    child: FeedListWidget(),
                   ),
                   Expanded(
-                    child: FeedItemViewWidget()
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        SizedBox(
+                          height: feedItemPaneHeight,
+                          child: FeedItemListWidget()
+                        ),
+                        Expanded(
+                          child: FeedItemViewWidget()
+                        )
+                      ],
+                    ),
                   )
+                  
                 ],
               ),
-            )
-            
+            ),
+            StatusBarWidget()
           ],
         ),
       ),

@@ -78,6 +78,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
         child: GestureDetector(
           onTap: () async {
             _previousScrollPosition = _controller.position.pixels;
+            appState.setStatusMessage('${feed.name} selected', timeout: 1);
             appState.selectFeed(feed.id);
           },
           child: Row(
