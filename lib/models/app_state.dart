@@ -11,7 +11,6 @@ class AppState extends ChangeNotifier{
   // when the app starts.
   AppState() {
     selectedFeed = 0;             // Indicate no feed selected.
-    selectedFeedItem;             // Selected feed item
   }
 
   void selectFeed(int feedId) {
