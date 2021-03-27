@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
@@ -54,6 +55,8 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     }
   }
 
+  // TODO: The list view could probably be refactored into a "SelectableList" widget.
+
   Widget _buildAll(BuildContext context, AppState appState) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
 
@@ -62,7 +65,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     } else {
       return Container(
         decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor))),
+          border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor))),
         child: Scrollbar(
           isAlwaysShown: true,
           thickness: 12.0,
@@ -80,35 +83,59 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   }
 
   Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem, AppState appState) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-      child: GestureDetector(
-        onTap: () async {
-          print("Tapped on feed item ${feedItem.guid}");
-          appState.selectFeedItem(feedItem);
-          _previousScrollPosition = _controller.position.pixels;
-        },
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 5,
-              child: Text(feedItem.title, overflow: TextOverflow.ellipsis,),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(DateFormat('M/d/y h:mm a').format(feedItem.publicationDatetime), overflow: TextOverflow.ellipsis),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(feedItem.author, overflow: TextOverflow.ellipsis),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(feedItem.categories.join(' '), overflow: TextOverflow.ellipsis),
-            )
-          ],
+      color: _backgroundColor(feedItem, appState),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () async {
+            print("Tapped on feed item ${feedItem.guid}");
+            appState.selectFeedItem(feedItem);
+            _previousScrollPosition = _controller.position.pixels;
+          },
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                flex: 5,
+                child: _rowText(feedItem.title, feedItem, appState),
+              ),
+              Expanded(
+                flex: 1,
+                child: _rowText(DateFormat('M/d/y h:mm a').format(feedItem.publicationDatetime), feedItem, appState),
+              ),
+              Expanded(
+                flex: 1,
+                child: _rowText(feedItem.author, feedItem, appState),
+              ),
+              Expanded(
+                flex: 1,
+                child: _rowText(feedItem.categories.join(' '), feedItem, appState),
+              )
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  bool _isSelected(FeedItem feedItem, AppState appState) {
+    return appState.selectedFeedItem != null && appState.selectedFeedItem.guid == feedItem.guid;
+  }
+
+    Color _backgroundColor(FeedItem feedItem, AppState appState) {
+    // TODO: Use theme colors here
+    return _isSelected(feedItem, appState) ? Colors.blue : Colors.white;
+  }
+
+  Color _textColor(FeedItem feedItem, AppState appState) {
+    // TODO: Use theme colors here
+    return _isSelected(feedItem, appState) ? Colors.white : Colors.black;
+  }
+
+  Widget _rowText(String text, FeedItem feedItem, AppState appState) {
+    return Text(text, overflow: TextOverflow.ellipsis,
+      style: TextStyle(color: _textColor(feedItem, appState)),
     );
   }
 }
