@@ -57,6 +57,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('RssReader Plus'),
+        actions: [
+          ElevatedButton(onPressed: _addFeed, child: Text('Add Feed')),
+          ElevatedButton(onPressed: _updateFeeds, child: Text('Update Feeds')),
+          ElevatedButton(onPressed: _purgeOldNews, child: Text('Purge Old News')),
+          ElevatedButton(onPressed: _manageGlobalFilters, child: Text('Manage Global Filters')),
+          ElevatedButton(onPressed: _editLanguageFilter, child: Text('Edit Language Filter')),
+          ElevatedButton(onPressed: _editAdFilter, child: Text('Edit Ad Filter')),
+          ElevatedButton(onPressed: _preferences, child: Text('Preferences')),
+        ],
       ),
       body: Container(
         child: Row(
@@ -86,5 +95,33 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+
+  void _addFeed() {
+    print('Add Feed tapped');
+  }
+
+  void _updateFeeds() {
+    print('Update Feeds tapped');
+  }
+
+  void _purgeOldNews() {
+    print('Purge Old News tapped');
+  }
+
+  void _manageGlobalFilters() {
+    print('Manage Global Filters tapped');
+  }
+
+  void _editLanguageFilter() {
+    print('Edit Language Filter tapped');
+  }
+
+  void _editAdFilter() {
+    print('Edit Ad Filter tapped');
+  }
+
+  void _preferences() {
+    print('Preferences tapped');
   }
 }
