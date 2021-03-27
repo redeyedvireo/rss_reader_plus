@@ -65,6 +65,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
             border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor))),
         child: Scrollbar(
           isAlwaysShown: true,
+          thickness: 12.0,
           controller: _controller,
           child:ListView.builder(
             itemCount: _feedItems.length,

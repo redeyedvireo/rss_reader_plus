@@ -35,6 +35,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
 
     return Scrollbar(
       isAlwaysShown: true,
+      thickness: 12.0,
       child: SingleChildScrollView(
         child: Html(
           onLinkTap: (url) {
