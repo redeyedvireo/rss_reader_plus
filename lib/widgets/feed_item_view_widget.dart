@@ -31,7 +31,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   Widget _buildAll(BuildContext context, FeedItem feedItem) {
     String content;
 
-    content = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.link;
+    content = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.description;
 
     return Scrollbar(
       isAlwaysShown: true,
@@ -40,6 +40,12 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
         child: Html(
           onLinkTap: (url) {
             print('Link tapped: $url');
+          },
+          onImageTap: (url) {
+            print('Image tapped: $url');
+          },
+          onImageError: (Object exception, StackTrace stackTrace) {
+            print('Image error');
           },
           data: content),
       ),
