@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:clipboard/clipboard.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
@@ -33,22 +34,39 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
 
     content = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.description;
 
-    return Scrollbar(
-      isAlwaysShown: true,
-      thickness: 12.0,
-      child: SingleChildScrollView(
-        child: Html(
-          onLinkTap: (url) {
-            print('Link tapped: $url');
-          },
-          onImageTap: (url) {
-            print('Image tapped: $url');
-          },
-          onImageError: (Object exception, StackTrace stackTrace) {
-            print('Image error');
-          },
-          data: content),
-      ),
+    return Column(
+      children: [
+        ButtonBar(
+          children: [
+            TextButton(
+              child: Text('Copy feed text'),
+              onPressed: () async {
+                print('Copy feed pressed');
+                await FlutterClipboard.copy(content);
+              },
+            )
+          ],
+        ),
+        Flexible(
+          child: Scrollbar(
+            isAlwaysShown: true,
+            thickness: 12.0,
+            child: SingleChildScrollView(
+              child: Html(
+                onLinkTap: (url) {
+                  print('Link tapped: $url');
+                },
+                onImageTap: (url) {
+                  print('Image tapped: $url');
+                },
+                onImageError: (Object exception, StackTrace stackTrace) {
+                  print('Image error');
+                },
+                data: content),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
