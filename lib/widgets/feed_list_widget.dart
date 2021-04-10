@@ -81,6 +81,14 @@ class _FeedListWidgetState extends State<FeedListWidget> {
             appState.setStatusMessage('${feed.name} selected', timeout: 1);
             appState.selectFeed(feed.id);
           },
+          onSecondaryTapUp: (TapUpDetails details) {
+            appState.setStatusMessage('Feed ${feed.name}, ID: ${feed.id}');
+            // TODO: Want to show a pop-up menu here with various actions, including an item to
+            //  update the feed.  Unfortunately, like most things in flutter, doing this simple
+            //  thing is a mini-research project.  Figure this stuff out later.
+            // final menuRect = RelativeRect.fromLTRB(details.localPosition, top, right, bottom)
+            // final selection = await showMenu(context: context, position: details.localPosition, items: items)
+          },
           child: Row(
             children: <Widget>[
               Expanded(child: _feedRowText(context, feed, appState)),
