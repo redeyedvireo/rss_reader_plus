@@ -35,7 +35,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
               return Center(child: Text(''),);
 
             case ConnectionState.done:
-              return _buildAll(context, _feeds, appState);
+              return _buildAll(context, _feeds, appState, _feedService);
 
             default:
               return Center(child: Text(''));
@@ -48,7 +48,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
     _feeds = await feedService.getFeeds();
   }
 
-  Widget _buildAll(BuildContext context, List<Feed> feeds, AppState appState) {
+  Widget _buildAll(BuildContext context, List<Feed> feeds, AppState appState, FeedService feedService) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
 
     return Container(
@@ -62,14 +62,14 @@ class _FeedListWidgetState extends State<FeedListWidget> {
           itemCount: feeds.length,
           controller: _controller,
           itemBuilder: (BuildContext context, int index) {
-            return _buildFeedRow(context, feeds[index], appState);
+            return _buildFeedRow(context, feeds[index], appState, feedService);
           },
         ),
       ),
     );
   }
 
-  Widget _buildFeedRow(BuildContext context, Feed feed, AppState appState) {
+  Widget _buildFeedRow(BuildContext context, Feed feed, AppState appState, FeedService feedService) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       color: _backgroundColor(feed, appState),
@@ -81,13 +81,15 @@ class _FeedListWidgetState extends State<FeedListWidget> {
             appState.setStatusMessage('${feed.name} selected', timeout: 1);
             appState.selectFeed(feed.id);
           },
-          onSecondaryTapUp: (TapUpDetails details) {
+          onSecondaryTapUp: (TapUpDetails details) async {
             appState.setStatusMessage('Feed ${feed.name}, ID: ${feed.id}');
             // TODO: Want to show a pop-up menu here with various actions, including an item to
             //  update the feed.  Unfortunately, like most things in flutter, doing this simple
             //  thing is a mini-research project.  Figure this stuff out later.
             // final menuRect = RelativeRect.fromLTRB(details.localPosition, top, right, bottom)
             // final selection = await showMenu(context: context, position: details.localPosition, items: items)
+            final feedData = await feedService.fetchFeed(feed.id);
+            print(feedData);
           },
           child: Row(
             children: <Widget>[
