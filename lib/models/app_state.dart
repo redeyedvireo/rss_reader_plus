@@ -9,6 +9,7 @@ class AppState extends ChangeNotifier{
   int selectedFeed;
   FeedItem selectedFeedItem;
   String statusMessage;
+  Timer messageTimer;
 
   // TODO Eventually, many of these items will be stored in preferences, and reloaded
   // when the app starts.
@@ -35,11 +36,12 @@ class AppState extends ChangeNotifier{
   /// Sets a message to appear in the status bar.
   /// @param message Message to appear
   /// @param timeout Number of seconds until the message disappears (set to 0 for no timeout)
-  void setStatusMessage(String message, {int timeout = 0}) {
+  void setStatusMessage(String message, {int timeout = 10}) {
     statusMessage = message;
     if (timeout > 0) {
-      final aTimer = Timer(Duration(seconds: timeout), () {
+      messageTimer = Timer(Duration(seconds: timeout), () {
         setStatusMessage('');
+        messageTimer.cancel();
       });
     }
 
