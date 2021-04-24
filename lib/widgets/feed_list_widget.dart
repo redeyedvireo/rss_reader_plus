@@ -20,8 +20,8 @@ class _FeedListWidgetState extends State<FeedListWidget> {
 
   @override
   Widget build(BuildContext context) {
-    FeedService _feedService = Provider.of<FeedService>(context);
-    AppState appState = Provider.of<AppState>(context);
+    FeedService _feedService = Provider.of<FeedService>(context, listen: false);
+    AppState appState = Provider.of<AppState>(context, listen: false);
 
     return FutureBuilder(
       future: _loadFeeds(_feedService),
@@ -88,8 +88,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
             //  thing is a mini-research project.  Figure this stuff out later.
             // final menuRect = RelativeRect.fromLTRB(details.localPosition, top, right, bottom)
             // final selection = await showMenu(context: context, position: details.localPosition, items: items)
-            final feedData = await feedService.fetchFeed(feed.id);
-            print(feedData);
+            await feedService.fetchFeed(feed.id);
           },
           child: Row(
             children: <Widget>[

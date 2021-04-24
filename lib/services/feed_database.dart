@@ -150,7 +150,6 @@ class FeedDatabase {
         enclosureLength: feedItemMap['enclosurelength'],
         enclosureType: feedItemMap['enclosuretype'],
         parentFeedId: -1,
-        webPageLink: feedItemMap['link'],
         read: feedItemMap['readflag'] == 1 ? true : false
       );
 
@@ -160,7 +159,51 @@ class FeedDatabase {
     return feedItems;
   }
 
+  /// Reads the guids of all feed items for the given feed.
+  Future<List<String>> readGuids(int feedId) async {
+    final resultList = await sqlfliteDb.query('${feedIdToString(feedId)}', columns: ['guid']);
+
+    List<String> guids = [];
+
+    resultList.forEach((item) {
+      guids.add(item['guid']);
+    });
+
+    return guids;
+  }
+
   List<String> _splitCategories(String categoryString) {
     return categoryString.split(',');
+  }
+
+  String _joinCategories(List<String> categoryList) {
+    return categoryList.join(',');
+  }
+
+  /// Writes a list of feed items to the database.
+  /// TODO: Return an error code?
+  Future<void> writeFeedItems(int feedId, List<FeedItem> feedItems) async {
+    final tableName = feedIdToString(feedId);
+
+    for (var feedItem in feedItems) {
+      await sqlfliteDb.insert(tableName, {
+        'title': feedItem.title,
+        'author': feedItem.author,
+        'link': feedItem.link,
+        'description': feedItem.description,
+        'categories': _joinCategories(feedItem.categories),
+        'pubdatetime': feedItem.publicationDatetime.millisecondsSinceEpoch / 1000,
+        'thumbnaillink': feedItem.thumbnailLink,
+        'thumbnailwidth': feedItem.thumbnailWidth,
+        'thumbnailheight': feedItem.thumbnailHeight,
+        'guid': feedItem.guid,
+        'feedburneroriglink': feedItem.feedburnerOrigLink,
+        'readflag': feedItem.read ? 1 : 0,
+        'enclosurelink': feedItem.enclosureLink,
+        'enclosurelength': feedItem.enclosureLength,
+        'enclosuretype': feedItem.enclosureType,
+        'contentencoded': feedItem.encodedContent,
+      });
+    }
   }
 }
