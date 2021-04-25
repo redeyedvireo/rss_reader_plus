@@ -31,8 +31,6 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
 
   @override
   Widget build(BuildContext context) {
-    AppState _appState = Provider.of<AppState>(context);
-    
     return FutureBuilder(
       future: widget.feedService.getFeedItems(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -45,7 +43,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
               return Center(child: Text(''),);
 
             case ConnectionState.done:
-              return _buildAll(context, _appState, snapshot.data);
+              return _buildAll(context, widget.feedService, snapshot.data);
 
             default:
               return Center(child: Text(''));
@@ -56,7 +54,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
 
   // TODO: The list view could probably be refactored into a "SelectableList" widget.
 
-  Widget _buildAll(BuildContext context, AppState appState, List<FeedItem> feedItems) {
+  Widget _buildAll(BuildContext context, FeedService feedService, List<FeedItem> feedItems) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
 
     if (feedItems.length == 0) {
@@ -73,7 +71,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
             itemCount: feedItems.length,
             controller: _controller,
             itemBuilder: (BuildContext context, int index) {
-              return _buildFeedItemRow(context, feedItems[index], appState);
+              return _buildFeedItemRow(context, feedItems[index], feedService);
             },
           )
         )
@@ -81,36 +79,35 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     }
   }
 
-  Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem, AppState appState) {
+  Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem, FeedService feedService) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-      color: _backgroundColor(feedItem, appState),
+      color: _backgroundColor(feedItem, feedService),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: () async {
             print("Tapped on feed item ${feedItem.guid}");
-            widget.feedService.feedItemSelected$.add(feedItem);
-            appState.selectFeedItem(feedItem);
+            widget.feedService.selectFeedItem(feedItem.guid);
             _previousScrollPosition = _controller.position.pixels;
           },
           child: Row(
             children: <Widget>[
               Expanded(
                 flex: 5,
-                child: _rowText(feedItem.title, feedItem, appState),
+                child: _rowText(feedItem.title, feedItem, feedService),
               ),
               Expanded(
                 flex: 1,
-                child: _rowText(DateFormat('M/d/y h:mm a').format(feedItem.publicationDatetime), feedItem, appState),
+                child: _rowText(DateFormat('M/d/y h:mm a').format(feedItem.publicationDatetime), feedItem, feedService),
               ),
               Expanded(
                 flex: 1,
-                child: _rowText(feedItem.author, feedItem, appState),
+                child: _rowText(feedItem.author, feedItem, feedService),
               ),
               Expanded(
                 flex: 1,
-                child: _rowText(feedItem.categories.join(' '), feedItem, appState),
+                child: _rowText(feedItem.categories.join(' '), feedItem, feedService),
               )
             ],
           ),
@@ -119,23 +116,23 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     );
   }
 
-  bool _isSelected(FeedItem feedItem, AppState appState) {
-    return appState.selectedFeedItem != null && appState.selectedFeedItem.guid == feedItem.guid;
+  bool _isSelected(FeedItem feedItem, FeedService feedService) {
+    return feedService.selectedFeedItemId == feedItem.guid;
   }
 
-    Color _backgroundColor(FeedItem feedItem, AppState appState) {
+    Color _backgroundColor(FeedItem feedItem, FeedService feedService) {
     // TODO: Use theme colors here
-    return _isSelected(feedItem, appState) ? Colors.blue : Colors.white;
+    return _isSelected(feedItem, feedService) ? Colors.blue : Colors.white;
   }
 
-  Color _textColor(FeedItem feedItem, AppState appState) {
+  Color _textColor(FeedItem feedItem, FeedService feedService) {
     // TODO: Use theme colors here
-    return _isSelected(feedItem, appState) ? Colors.white : Colors.black;
+    return _isSelected(feedItem, feedService) ? Colors.white : Colors.black;
   }
 
-  Widget _rowText(String text, FeedItem feedItem, AppState appState) {
+  Widget _rowText(String text, FeedItem feedItem, FeedService feedService) {
     return Text(text, overflow: TextOverflow.ellipsis,
-      style: TextStyle(color: _textColor(feedItem, appState)),
+      style: TextStyle(color: _textColor(feedItem, feedService)),
     );
   }
 }

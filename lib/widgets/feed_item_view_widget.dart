@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:clipboard/clipboard.dart';
+import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -10,41 +11,38 @@ import 'package:rss_reader_plus/services/feed_service.dart';
 
 class FeedItemViewWidget extends StatefulWidget {
   FeedService feedService;
+  NotificationService notificationService;
 
-
-  FeedItemViewWidget(this.feedService);
+  FeedItemViewWidget(this.feedService, this.notificationService);
 
   @override
   _FeedItemViewWidgetState createState() => _FeedItemViewWidgetState();
 }
 
 class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
-  FeedItem  _feedItem;
-
   @override
   void initState() {
     super.initState();
 
-    widget.feedService.feedItemSelected$.listen((feedItem) {
+    widget.feedService.feedItemSelected$.listen((feedItemId) {
       setState(() {
-        _feedItem = feedItem;
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    AppState _appState = Provider.of<AppState>(context);
+    FeedItem feedItem = widget.feedService.selectedFeedItem;
 
-    if (_feedItem != null) {
-      return _buildAll(context, _feedItem, _appState);
+    if (feedItem.isValid) {
+      return _buildAll(context, feedItem, widget.notificationService);
     } else {
       return Center(child: Text(""),);
     }
 
   }
 
-  Widget _buildAll(BuildContext context, FeedItem feedItem, AppState appState) {
+  Widget _buildAll(BuildContext context, FeedItem feedItem, NotificationService notificationService) {
     String content;
 
     content = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.description;
@@ -63,8 +61,8 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
                 child: Html(
                   onLinkTap: (url) async {
                     print('Link tapped: $url');
-                    appState.setStatusMessage(url, timeout: 5);
-                    await canLaunch(url) ? await launch(url) : appState.setStatusMessage('Cannot launch $url', timeout: 5);
+                    notificationService.setStatusMessage(url, timeout: 5);
+                    await canLaunch(url) ? await launch(url) : notificationService.setStatusMessage('Cannot launch $url', timeout: 5);
                   },
                   onImageTap: (url) {
                     print('Image tapped: $url');

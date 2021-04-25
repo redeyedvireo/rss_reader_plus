@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:provider/provider.dart';
-import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:rss_reader_plus/services/notification_service.dart';
 
 class FeedListWidget extends StatefulWidget {
   FeedService feedService;
+  NotificationService notificationService;
 
-  FeedListWidget(this.feedService);
+  FeedListWidget(this.feedService, this.notificationService);
 
   @override
   _FeedListWidgetState createState() => _FeedListWidgetState();
@@ -22,8 +21,6 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   
   @override
   Widget build(BuildContext context) {
-    AppState appState = Provider.of<AppState>(context, listen: false);
-
     return FutureBuilder(
       future: widget.feedService.getFeeds(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -36,7 +33,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
               return Center(child: Text(''),);
 
             case ConnectionState.done:
-              return _buildAll(context, snapshot.data, appState, widget.feedService);
+              return _buildAll(context, snapshot.data, widget.feedService, widget.notificationService);
 
             default:
               return Center(child: Text(''));
@@ -45,7 +42,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
     ); 
   }
 
-  Widget _buildAll(BuildContext context, List<Feed> feeds, AppState appState, FeedService feedService) {
+  Widget _buildAll(BuildContext context, List<Feed> feeds, FeedService feedService, NotificationService notificationService) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
 
     return Container(
@@ -59,14 +56,14 @@ class _FeedListWidgetState extends State<FeedListWidget> {
           itemCount: feeds.length,
           controller: _controller,
           itemBuilder: (BuildContext context, int index) {
-            return _buildFeedRow(context, feeds[index], appState, feedService);
+            return _buildFeedRow(context, feeds[index], feedService, notificationService);
           },
         ),
       ),
     );
   }
 
-  Widget _buildFeedRow(BuildContext context, Feed feed, AppState appState, FeedService feedService) {
+  Widget _buildFeedRow(BuildContext context, Feed feed, FeedService feedService, NotificationService notificationService) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       color: _backgroundColor(feed, feedService),
@@ -75,11 +72,11 @@ class _FeedListWidgetState extends State<FeedListWidget> {
         child: GestureDetector(
           onTap: () async {
             _previousScrollPosition = _controller.position.pixels;
-            appState.setStatusMessage('${feed.name} selected', timeout: 1);
+            notificationService.setStatusMessage('${feed.name} selected', timeout: 1);
             widget.feedService.selectFeed(feed.id);
           },
           onSecondaryTapUp: (TapUpDetails details) async {
-            appState.setStatusMessage('Feed ${feed.name}, ID: ${feed.id}');
+            notificationService.setStatusMessage('Feed ${feed.name}, ID: ${feed.id}');
             // TODO: Want to show a pop-up menu here with various actions, including an item to
             //  update the feed.  Unfortunately, like most things in flutter, doing this simple
             //  thing is a mini-research project.  Figure this stuff out later.

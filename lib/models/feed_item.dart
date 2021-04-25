@@ -41,4 +41,6 @@ class FeedItem {
   });
 
   get hasEnclosure => enclosureLink.length > 0;
+
+  get isValid => guid != null && guid.length > 0;
 }

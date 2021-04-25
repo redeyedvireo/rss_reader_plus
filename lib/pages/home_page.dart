@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rss_reader_plus/models/app_state.dart';
-import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
+import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
@@ -29,7 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     FeedDatabase feedDb = Provider.of<FeedDatabase>(context, listen: false);
     FeedService _feedService = Provider.of<FeedService>(context);
-    // AppState appState = Provider.of<AppState>(context);
+    NotificationService _notificationService = Provider.of<NotificationService>(context);
     
     return FutureBuilder(
       future: _mainInit(feedDb),
@@ -43,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return Center(child: Text(''),);
 
           case ConnectionState.done:
-            return _buildAll(context, _feedService);
+            return _buildAll(context, _feedService, _notificationService);
 
           default:
             return Center(child: Text(''));
@@ -57,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
     feedDb.setSqlfliteDb(sqlfliteDb);
   }
 
-  Widget _buildAll(BuildContext context, FeedService feedService) {
+  Widget _buildAll(BuildContext context, FeedService feedService, NotificationService notificationService) {
     return Scaffold(
       appBar: AppBar(
         title: Text('RssReader Plus'),
@@ -82,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: <Widget>[
                   SizedBox(
                     width: feedPaneWidth,
-                    child: FeedListWidget(feedService),
+                    child: FeedListWidget(feedService, notificationService),
                   ),
                   Expanded(
                     child: Column(
@@ -93,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: FeedItemListWidget(feedService)
                         ),
                         Expanded(
-                          child: FeedItemViewWidget(feedService)
+                          child: FeedItemViewWidget(feedService, notificationService)
                         )
                       ],
                     ),
@@ -102,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-            StatusBarWidget()
+            StatusBarWidget(notificationService)
           ],
         ),
       ),

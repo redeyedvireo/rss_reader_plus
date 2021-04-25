@@ -123,9 +123,9 @@ class FeedDatabase {
     return feeds;
   }
 
-  Future<List<FeedItem>> readFeedItems(int feedId) async {
+  Future<Map<String, FeedItem>> readFeedItems(int feedId) async {
     String tableName = feedIdToString(feedId);
-    List<FeedItem> feedItems = [];
+    Map<String, FeedItem> feedItems = {};
 
     try {
       final feedItemMapList = await sqlfliteDb.rawQuery('select * from $tableName');
@@ -154,7 +154,7 @@ class FeedDatabase {
           read: feedItemMap['readflag'] == 1 ? true : false
         );
 
-        feedItems.add(feedItem);
+        feedItems[feedItem.guid] = feedItem;
       }
     } catch (e) {
       print('Error: $e');

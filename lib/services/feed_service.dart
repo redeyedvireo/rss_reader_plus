@@ -14,28 +14,42 @@ import 'feed_database.dart';
 class FeedService {
   FeedDatabase db;
   List<Feed> _feeds;
-  List<FeedItem> _feedItems;      // TODO: Maybe use a map?
+  Map<String, FeedItem> _feedItems;
   int _selectedFeedId;
+  String _selectedFeedItem;
   bool _feedItemsLoaded;
   
   final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
-  final BehaviorSubject feedItemSelected$ = BehaviorSubject<FeedItem>();
+  final BehaviorSubject feedItemSelected$ = BehaviorSubject<String>();
 
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
     _feeds = [];
-    _feedItems = [];
+    _feedItems = {};
     _selectedFeedId = 0;
+    _selectedFeedItem = '';
     _feedItemsLoaded = false;
   }
 
   int get selectedFeedId => _selectedFeedId;
 
+  String get selectedFeedItemId => _selectedFeedItem;
+
+  FeedItem get selectedFeedItem {
+    if (_feedItemsLoaded) {
+      if (_feedItems.containsKey(_selectedFeedItem)) {
+        return _feedItems[_selectedFeedItem];
+      }
+    }
+    
+    return FeedItem();
+  }
+
   void selectFeed(int feedId) {
     if (_selectedFeedId != feedId) {
       _selectedFeedId = feedId;
       feedSelected$.add(feedId);
-      _feedItems = [];
+      _feedItems = {};
       _feedItemsLoaded = false;
     }
   }
@@ -48,6 +62,13 @@ class FeedService {
     return _feeds;
   }
 
+  void selectFeedItem(String feedItemId) {
+    if (_feedItemsLoaded) {
+      _selectedFeedItem = feedItemId;
+      feedItemSelected$.add(feedItemId);
+    }
+  }
+
   Future<List<FeedItem>> getFeedItems() async {
     if (!_feedItemsLoaded) {
       if (_selectedFeedId > 0) {
@@ -56,7 +77,8 @@ class FeedService {
       }
     }
 
-    return _feedItems;
+    List<FeedItem> feedItemList = _feedItems.values.toList();
+    return feedItemList;
   }
 
   /// Fetch feed from the internet.
