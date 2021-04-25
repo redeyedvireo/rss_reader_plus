@@ -25,7 +25,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
     AppState appState = Provider.of<AppState>(context, listen: false);
 
     return FutureBuilder(
-      future: _loadFeeds(widget.feedService),
+      future: widget.feedService.getFeeds(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -43,10 +43,6 @@ class _FeedListWidgetState extends State<FeedListWidget> {
           }
       },
     ); 
-  }
-
-  Future<List<Feed>> _loadFeeds(FeedService feedService) async {
-    return await feedService.getFeeds();
   }
 
   Widget _buildAll(BuildContext context, List<Feed> feeds, AppState appState, FeedService feedService) {
@@ -102,7 +98,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   }
 
   bool _isSelected(Feed feed, FeedService feedService) {
-    return feed.id == feedService.selectedFeed;
+    return feed.id == feedService.selectedFeedId;
   }
 
   Color _backgroundColor(Feed feed, FeedService feedService) {

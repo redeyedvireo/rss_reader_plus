@@ -14,7 +14,9 @@ import 'feed_database.dart';
 class FeedService {
   FeedDatabase db;
   List<Feed> _feeds;
-  int _selectedFeed;
+  List<FeedItem> _feedItems;      // TODO: Maybe use a map?
+  int _selectedFeedId;
+  bool _feedItemsLoaded;
   
   final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
   final BehaviorSubject feedItemSelected$ = BehaviorSubject<FeedItem>();
@@ -22,13 +24,20 @@ class FeedService {
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
     _feeds = [];
-    _selectedFeed = 0;
+    _feedItems = [];
+    _selectedFeedId = 0;
+    _feedItemsLoaded = false;
   }
 
-  int get selectedFeed => _selectedFeed;
+  int get selectedFeedId => _selectedFeedId;
 
   void selectFeed(int feedId) {
-    feedSelected$.add(feedId);
+    if (_selectedFeedId != feedId) {
+      _selectedFeedId = feedId;
+      feedSelected$.add(feedId);
+      _feedItems = [];
+      _feedItemsLoaded = false;
+    }
   }
 
   Future<List<Feed>> getFeeds() async {
@@ -39,9 +48,15 @@ class FeedService {
     return _feeds;
   }
 
-  Future<List<FeedItem>> getFeedItems(int feedId) async {
-    // TODO: Does it make sense to cache feed items for the current feed?
-    return await db.readFeedItems(feedId);
+  Future<List<FeedItem>> getFeedItems() async {
+    if (!_feedItemsLoaded) {
+      if (_selectedFeedId > 0) {
+      _feedItems = await db.readFeedItems(_selectedFeedId);
+      _feedItemsLoaded = true;
+      }
+    }
+
+    return _feedItems;
   }
 
   /// Fetch feed from the internet.

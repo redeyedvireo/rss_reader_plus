@@ -19,16 +19,12 @@ class FeedItemListWidget extends StatefulWidget {
 class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
-  List<FeedItem> _feedItems = [];
-  int _feedId;
 
   @override
   void initState() {
     super.initState();
-    _feedId = 0;
     widget.feedService.feedSelected$.listen((feedId) {
       setState(() {
-        _feedId = feedId;
       });
     });
   }
@@ -38,7 +34,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     AppState _appState = Provider.of<AppState>(context);
     
     return FutureBuilder(
-      future: _loadFeedItems(widget.feedService, _feedId),
+      future: widget.feedService.getFeedItems(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -49,7 +45,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
               return Center(child: Text(''),);
 
             case ConnectionState.done:
-              return _buildAll(context, _appState);
+              return _buildAll(context, _appState, snapshot.data);
 
             default:
               return Center(child: Text(''));
@@ -58,21 +54,12 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     );
   }
 
-  Future<void> _loadFeedItems(FeedService feedService, int feedId) async {
-    if (feedId <= 0) {
-      // Invalid feed ID
-      _feedItems = [];
-    } else {
-      _feedItems = await feedService.getFeedItems(feedId);
-    }
-  }
-
   // TODO: The list view could probably be refactored into a "SelectableList" widget.
 
-  Widget _buildAll(BuildContext context, AppState appState) {
+  Widget _buildAll(BuildContext context, AppState appState, List<FeedItem> feedItems) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
 
-    if (_feedItems.length == 0) {
+    if (feedItems.length == 0) {
       return Center(child: Text('No feed items'));
     } else {
       return Container(
@@ -83,10 +70,10 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
           thickness: 12.0,
           controller: _controller,
           child:ListView.builder(
-            itemCount: _feedItems.length,
+            itemCount: feedItems.length,
             controller: _controller,
             itemBuilder: (BuildContext context, int index) {
-              return _buildFeedItemRow(context, _feedItems[index], appState);
+              return _buildFeedItemRow(context, feedItems[index], appState);
             },
           )
         )

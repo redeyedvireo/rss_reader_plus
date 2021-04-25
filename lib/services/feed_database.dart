@@ -125,35 +125,39 @@ class FeedDatabase {
 
   Future<List<FeedItem>> readFeedItems(int feedId) async {
     String tableName = feedIdToString(feedId);
-    final feedItemMapList = await sqlfliteDb.rawQuery('select * from $tableName');
-
     List<FeedItem> feedItems = [];
 
-    for (final feedItemMap in feedItemMapList) {
-      int timestampRaw = feedItemMap['pubdatetime'];
-      int timestamp = timestampRaw * 1000;
+    try {
+      final feedItemMapList = await sqlfliteDb.rawQuery('select * from $tableName');
 
-      final feedItem = FeedItem(
-        title: feedItemMap['title'],
-        author: feedItemMap['author'],
-        link: feedItemMap['link'],
-        description: feedItemMap['description'],
-        encodedContent: feedItemMap['contentencoded'],
-        categories: _splitCategories(feedItemMap['categories']),
-        publicationDatetime: DateTime.fromMillisecondsSinceEpoch(timestamp),
-        thumbnailLink: feedItemMap['thumbnaillink'],
-        thumbnailWidth: feedItemMap['thumbnailwidth'],
-        thumbnailHeight: feedItemMap['thumnailheight'],
-        guid: feedItemMap['guid'],
-        feedburnerOrigLink: feedItemMap['feedburneroriglink'],
-        enclosureLink: feedItemMap['enclosurelink'],
-        enclosureLength: feedItemMap['enclosurelength'],
-        enclosureType: feedItemMap['enclosuretype'],
-        parentFeedId: -1,
-        read: feedItemMap['readflag'] == 1 ? true : false
-      );
+      for (final feedItemMap in feedItemMapList) {
+        int timestampRaw = feedItemMap['pubdatetime'];
+        int timestamp = timestampRaw * 1000;
 
-      feedItems.add(feedItem);
+        final feedItem = FeedItem(
+          title: feedItemMap['title'],
+          author: feedItemMap['author'],
+          link: feedItemMap['link'],
+          description: feedItemMap['description'],
+          encodedContent: feedItemMap['contentencoded'],
+          categories: _splitCategories(feedItemMap['categories']),
+          publicationDatetime: DateTime.fromMillisecondsSinceEpoch(timestamp),
+          thumbnailLink: feedItemMap['thumbnaillink'],
+          thumbnailWidth: feedItemMap['thumbnailwidth'],
+          thumbnailHeight: feedItemMap['thumnailheight'],
+          guid: feedItemMap['guid'],
+          feedburnerOrigLink: feedItemMap['feedburneroriglink'],
+          enclosureLink: feedItemMap['enclosurelink'],
+          enclosureLength: feedItemMap['enclosurelength'],
+          enclosureType: feedItemMap['enclosuretype'],
+          parentFeedId: -1,
+          read: feedItemMap['readflag'] == 1 ? true : false
+        );
+
+        feedItems.add(feedItem);
+      }
+    } catch (e) {
+      print('Error: $e');
     }
 
     return feedItems;
