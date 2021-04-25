@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:clipboard/clipboard.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
@@ -8,26 +9,39 @@ import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 
 class FeedItemViewWidget extends StatefulWidget {
+  BehaviorSubject feedItemSelected$;
+
+  FeedItemViewWidget(this.feedItemSelected$);
+
   @override
   _FeedItemViewWidgetState createState() => _FeedItemViewWidgetState();
 }
 
 class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
-  FeedItem  feedItem;
+  FeedItem  _feedItem;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.feedItemSelected$.listen((feedItem) {
+      setState(() {
+        _feedItem = feedItem;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     FeedService _feedService = Provider.of<FeedService>(context);
+    AppState _appState = Provider.of<AppState>(context);
 
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        if (appState.selectedFeedItem != null) {
-          return _buildAll(context, appState.selectedFeedItem, appState);
-        } else {
-          return Center(child: Text(""),);
-        }
-      }
-    );
+    if (_feedItem != null) {
+      return _buildAll(context, _feedItem, _appState);
+    } else {
+      return Center(child: Text(""),);
+    }
+
   }
 
   Widget _buildAll(BuildContext context, FeedItem feedItem, AppState appState) {

@@ -34,6 +34,7 @@ dependencies:
   http: ^0.13.1
   dart_rss: ^2.0.1
   jiffy: ^4.1.0
+  rxdart: ^0.26.0
 
   # webfeed doesn't seem to be compatible with intl and flutter_html at this time, because it
   # depends on conflicting library versions.  Perhaps this will be fixed in the future.

@@ -5,8 +5,14 @@ import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
+import 'package:rxdart/rxdart.dart';
 
 class FeedItemListWidget extends StatefulWidget {
+  BehaviorSubject feedSelected$;
+  BehaviorSubject feedItemSelected$;
+
+  FeedItemListWidget(this.feedSelected$, this.feedItemSelected$);
+
   @override
   _FeedItemListWidgetState createState() => _FeedItemListWidgetState();
 }
@@ -15,33 +21,41 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
   List<FeedItem> _feedItems = [];
+  int _feedId;
+
+  @override
+  void initState() {
+    super.initState();
+    _feedId = 0;
+    widget.feedSelected$.listen((feedId) {
+      setState(() {
+        _feedId = feedId;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     FeedService _feedService = Provider.of<FeedService>(context);
-
+    AppState _appState = Provider.of<AppState>(context);
     
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return FutureBuilder(
-          future: _loadFeedItems(_feedService, appState.selectedFeed),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                case ConnectionState.waiting:
-                  return Center(child: Text(''));
+    return FutureBuilder(
+      future: _loadFeedItems(_feedService, _feedId),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return Center(child: Text(''));
 
-                case ConnectionState.active:
-                  return Center(child: Text(''),);
+            case ConnectionState.active:
+              return Center(child: Text(''),);
 
-                case ConnectionState.done:
-                  return _buildAll(context, appState);
+            case ConnectionState.done:
+              return _buildAll(context, _appState);
 
-                default:
-                  return Center(child: Text(''));
-              }
-          },
-        ); 
+            default:
+              return Center(child: Text(''));
+          }
       },
     );
   }
@@ -91,6 +105,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
         child: GestureDetector(
           onTap: () async {
             print("Tapped on feed item ${feedItem.guid}");
+            widget.feedItemSelected$.add(feedItem);
             appState.selectFeedItem(feedItem);
             _previousScrollPosition = _controller.position.pixels;
           },

@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 
-class AppState extends ChangeNotifier{
+class AppState {
   int selectedFeed;
   FeedItem selectedFeedItem;
   String statusMessage;
@@ -25,12 +25,12 @@ class AppState extends ChangeNotifier{
     // TODO: Remember which feed item was selected per feed, and then reselect
     // that one, when feeds are switched.
     selectedFeedItem = null;
-    notifyListeners();
+    // notifyListeners();
   }
 
   void selectFeedItem(FeedItem feedItem) {
     selectedFeedItem = feedItem;
-    notifyListeners();
+    // notifyListeners();
   }
 
   /// Sets a message to appear in the status bar.
@@ -45,6 +45,6 @@ class AppState extends ChangeNotifier{
       });
     }
 
-    notifyListeners();
+    // notifyListeners();
   }
 }

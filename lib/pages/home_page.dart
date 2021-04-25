@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
+import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
+import 'package:rxdart/rxdart.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
@@ -17,6 +19,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
+  final BehaviorSubject feedItemSelected$ = BehaviorSubject<FeedItem>();
 
   @override
   void initState() {
@@ -79,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: <Widget>[
                   SizedBox(
                     width: feedPaneWidth,
-                    child: FeedListWidget(),
+                    child: FeedListWidget(feedSelected$),
                   ),
                   Expanded(
                     child: Column(
@@ -87,10 +91,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       children: [
                         SizedBox(
                           height: feedItemPaneHeight,
-                          child: FeedItemListWidget()
+                          child: FeedItemListWidget(feedSelected$, feedItemSelected$)
                         ),
                         Expanded(
-                          child: FeedItemViewWidget()
+                          child: FeedItemViewWidget(feedItemSelected$)
                         )
                       ],
                     ),

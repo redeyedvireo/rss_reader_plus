@@ -4,9 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
+import 'package:rxdart/rxdart.dart';
 
 class FeedListWidget extends StatefulWidget {
-  FeedListWidget();
+  BehaviorSubject feedSelected$;
+
+  FeedListWidget(this.feedSelected$);
 
   @override
   _FeedListWidgetState createState() => _FeedListWidgetState();
@@ -80,6 +83,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
             _previousScrollPosition = _controller.position.pixels;
             appState.setStatusMessage('${feed.name} selected', timeout: 1);
             appState.selectFeed(feed.id);
+            widget.feedSelected$.add(feed.id);
           },
           onSecondaryTapUp: (TapUpDetails details) async {
             appState.setStatusMessage('Feed ${feed.name}, ID: ${feed.id}');
