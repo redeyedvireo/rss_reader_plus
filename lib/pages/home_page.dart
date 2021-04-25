@@ -4,10 +4,10 @@ import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
-import 'package:rxdart/rxdart.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
+import '../services/feed_service.dart';
 
 // Pane size constraints
 const feedPaneWidth = 200.0;
@@ -19,8 +19,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
-  final BehaviorSubject feedItemSelected$ = BehaviorSubject<FeedItem>();
 
   @override
   void initState() {
@@ -30,6 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     FeedDatabase feedDb = Provider.of<FeedDatabase>(context, listen: false);
+    FeedService _feedService = Provider.of<FeedService>(context);
     // AppState appState = Provider.of<AppState>(context);
     
     return FutureBuilder(
@@ -44,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return Center(child: Text(''),);
 
           case ConnectionState.done:
-            return _buildAll(context);
+            return _buildAll(context, _feedService);
 
           default:
             return Center(child: Text(''));
@@ -58,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
     feedDb.setSqlfliteDb(sqlfliteDb);
   }
 
-  Widget _buildAll(BuildContext context) {
+  Widget _buildAll(BuildContext context, FeedService feedService) {
     return Scaffold(
       appBar: AppBar(
         title: Text('RssReader Plus'),
@@ -83,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: <Widget>[
                   SizedBox(
                     width: feedPaneWidth,
-                    child: FeedListWidget(feedSelected$),
+                    child: FeedListWidget(feedService),
                   ),
                   Expanded(
                     child: Column(
@@ -91,10 +90,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       children: [
                         SizedBox(
                           height: feedItemPaneHeight,
-                          child: FeedItemListWidget(feedSelected$, feedItemSelected$)
+                          child: FeedItemListWidget(feedService)
                         ),
                         Expanded(
-                          child: FeedItemViewWidget(feedItemSelected$)
+                          child: FeedItemViewWidget(feedService)
                         )
                       ],
                     ),

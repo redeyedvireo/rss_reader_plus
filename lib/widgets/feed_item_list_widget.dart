@@ -8,10 +8,9 @@ import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FeedItemListWidget extends StatefulWidget {
-  BehaviorSubject feedSelected$;
-  BehaviorSubject feedItemSelected$;
+  FeedService feedService;
 
-  FeedItemListWidget(this.feedSelected$, this.feedItemSelected$);
+  FeedItemListWidget(this.feedService);
 
   @override
   _FeedItemListWidgetState createState() => _FeedItemListWidgetState();
@@ -27,7 +26,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   void initState() {
     super.initState();
     _feedId = 0;
-    widget.feedSelected$.listen((feedId) {
+    widget.feedService.feedSelected$.listen((feedId) {
       setState(() {
         _feedId = feedId;
       });
@@ -36,11 +35,10 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
 
   @override
   Widget build(BuildContext context) {
-    FeedService _feedService = Provider.of<FeedService>(context);
     AppState _appState = Provider.of<AppState>(context);
     
     return FutureBuilder(
-      future: _loadFeedItems(_feedService, _feedId),
+      future: _loadFeedItems(widget.feedService, _feedId),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -105,7 +103,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
         child: GestureDetector(
           onTap: () async {
             print("Tapped on feed item ${feedItem.guid}");
-            widget.feedItemSelected$.add(feedItem);
+            widget.feedService.feedItemSelected$.add(feedItem);
             appState.selectFeedItem(feedItem);
             _previousScrollPosition = _controller.position.pixels;
           },

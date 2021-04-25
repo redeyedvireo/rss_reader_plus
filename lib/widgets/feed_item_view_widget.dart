@@ -9,9 +9,10 @@ import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 
 class FeedItemViewWidget extends StatefulWidget {
-  BehaviorSubject feedItemSelected$;
+  FeedService feedService;
 
-  FeedItemViewWidget(this.feedItemSelected$);
+
+  FeedItemViewWidget(this.feedService);
 
   @override
   _FeedItemViewWidgetState createState() => _FeedItemViewWidgetState();
@@ -24,7 +25,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   void initState() {
     super.initState();
 
-    widget.feedItemSelected$.listen((feedItem) {
+    widget.feedService.feedItemSelected$.listen((feedItem) {
       setState(() {
         _feedItem = feedItem;
       });
@@ -33,7 +34,6 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    FeedService _feedService = Provider.of<FeedService>(context);
     AppState _appState = Provider.of<AppState>(context);
 
     if (_feedItem != null) {

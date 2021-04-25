@@ -7,9 +7,9 @@ import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FeedListWidget extends StatefulWidget {
-  BehaviorSubject feedSelected$;
+  FeedService feedService;
 
-  FeedListWidget(this.feedSelected$);
+  FeedListWidget(this.feedService);
 
   @override
   _FeedListWidgetState createState() => _FeedListWidgetState();
@@ -19,15 +19,13 @@ class FeedListWidget extends StatefulWidget {
 class _FeedListWidgetState extends State<FeedListWidget> {
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
-  List<Feed> _feeds;
-
+  
   @override
   Widget build(BuildContext context) {
-    FeedService _feedService = Provider.of<FeedService>(context, listen: false);
     AppState appState = Provider.of<AppState>(context, listen: false);
 
     return FutureBuilder(
-      future: _loadFeeds(_feedService),
+      future: _loadFeeds(widget.feedService),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -38,7 +36,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
               return Center(child: Text(''),);
 
             case ConnectionState.done:
-              return _buildAll(context, _feeds, appState, _feedService);
+              return _buildAll(context, snapshot.data, appState, widget.feedService);
 
             default:
               return Center(child: Text(''));
@@ -47,8 +45,8 @@ class _FeedListWidgetState extends State<FeedListWidget> {
     ); 
   }
 
-  Future<void> _loadFeeds(FeedService feedService) async {
-    _feeds = await feedService.getFeeds();
+  Future<List<Feed>> _loadFeeds(FeedService feedService) async {
+    return await feedService.getFeeds();
   }
 
   Widget _buildAll(BuildContext context, List<Feed> feeds, AppState appState, FeedService feedService) {
@@ -75,15 +73,14 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   Widget _buildFeedRow(BuildContext context, Feed feed, AppState appState, FeedService feedService) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      color: _backgroundColor(feed, appState),
+      color: _backgroundColor(feed, feedService),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: () async {
             _previousScrollPosition = _controller.position.pixels;
             appState.setStatusMessage('${feed.name} selected', timeout: 1);
-            appState.selectFeed(feed.id);
-            widget.feedSelected$.add(feed.id);
+            widget.feedService.selectFeed(feed.id);
           },
           onSecondaryTapUp: (TapUpDetails details) async {
             appState.setStatusMessage('Feed ${feed.name}, ID: ${feed.id}');
@@ -96,7 +93,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
           },
           child: Row(
             children: <Widget>[
-              Expanded(child: _feedRowText(context, feed, appState)),
+              Expanded(child: _feedRowText(context, feed, feedService)),
             ],
           ),
         ),
@@ -104,23 +101,23 @@ class _FeedListWidgetState extends State<FeedListWidget> {
     );
   }
 
-  bool _isSelected(Feed feed, AppState appState) {
-    return feed.id == appState.selectedFeed;
+  bool _isSelected(Feed feed, FeedService feedService) {
+    return feed.id == feedService.selectedFeed;
   }
 
-  Color _backgroundColor(Feed feed, AppState appState) {
+  Color _backgroundColor(Feed feed, FeedService feedService) {
     // TODO: Use theme colors here
-    return _isSelected(feed, appState) ? Colors.blue : Colors.white;
+    return _isSelected(feed, feedService) ? Colors.blue : Colors.white;
   }
 
-  Color _textColor(Feed feed, AppState appState) {
+  Color _textColor(Feed feed, FeedService feedService) {
     // TODO: Use theme colors here
-    return _isSelected(feed, appState) ? Colors.white : Colors.black;
+    return _isSelected(feed, feedService) ? Colors.white : Colors.black;
   }
 
-  Widget _feedRowText(BuildContext context, Feed feed, AppState appState) {
+  Widget _feedRowText(BuildContext context, Feed feed, FeedService feedService) {
     return Text(feed.name, overflow: TextOverflow.ellipsis,
-      style: TextStyle(color: _textColor(feed, appState)),
+      style: TextStyle(color: _textColor(feed, feedService)),
     );
   }
 }

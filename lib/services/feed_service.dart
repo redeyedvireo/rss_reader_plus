@@ -4,6 +4,7 @@ import 'package:jiffy/jiffy.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
+import 'package:rxdart/rxdart.dart';
 import '../models/feed.dart';
 import 'package:dart_rss/dart_rss.dart';
 
@@ -13,10 +14,21 @@ import 'feed_database.dart';
 class FeedService {
   FeedDatabase db;
   List<Feed> _feeds;
+  int _selectedFeed;
   
+  final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
+  final BehaviorSubject feedItemSelected$ = BehaviorSubject<FeedItem>();
+
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
     _feeds = [];
+    _selectedFeed = 0;
+  }
+
+  int get selectedFeed => _selectedFeed;
+
+  void selectFeed(int feedId) {
+    feedSelected$.add(feedId);
   }
 
   Future<List<Feed>> getFeeds() async {
