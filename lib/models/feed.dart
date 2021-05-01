@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class Feed {
   int id;
   int parentId;     // TODO: Not sure what this is used for.  Delete?
@@ -17,7 +19,7 @@ class Feed {
   String webPageLink;     // URL to the host's web page for this feed
 
   // TODO: Figure out what data types these need to be.
-  // favicon  // Icon for the feed's main web site (for display in the feed tree)
+  Uint8List favicon;  // Icon for the feed's main web site (for display in the feed tree)
   // image    // Image from the feed itself.  This is generally not an icon
 
   Feed({this.id,
@@ -30,6 +32,7 @@ class Feed {
         this.title,
         this.language,
         this.description,
-        this.webPageLink
+        this.webPageLink,
+        this.favicon
       });
 }
