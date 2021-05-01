@@ -1,4 +1,6 @@
 
+import 'dart:typed_data';
+
 import 'package:path/path.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:rss_reader_plus/models/feed.dart';
@@ -16,9 +18,7 @@ class FeedDatabase {
 
   FeedDatabase();
 
-  /**
-   * Returns the Sqlflite database.
-   */
+  /// Returns the Sqlflite database.
   static Future<Database> init() async {
     final databaseDir = await getDatabaseDirectory();
 
@@ -104,6 +104,9 @@ class FeedDatabase {
 
     // feedMapList is an array of maps
     for (var feedMap in feedMapList) {
+      Uint8List favicon = feedMap['favicon'];
+      Uint8List feedImage = feedMap['image'];
+      
       final feed = Feed(
         id: feedMap['feedid'],
         name: feedMap['name'],
@@ -114,7 +117,8 @@ class FeedDatabase {
         title: feedMap['title'],
         language: feedMap['language'],
         description: feedMap['description'],
-        webPageLink: feedMap['webpagelink']
+        webPageLink: feedMap['webpagelink'],
+        favicon: favicon != null ? favicon : feedImage
       );
 
       feeds.add(feed);
@@ -157,7 +161,7 @@ class FeedDatabase {
         feedItems[feedItem.guid] = feedItem;
       }
     } catch (e) {
-      print('Error: $e');
+      print('[FeedDatabase.readFeedItems] Error: $e');
     }
 
     return feedItems;
@@ -196,7 +200,7 @@ class FeedDatabase {
         'link': feedItem.link,
         'description': feedItem.description,
         'categories': _joinCategories(feedItem.categories),
-        'pubdatetime': feedItem.publicationDatetime.millisecondsSinceEpoch / 1000,
+        'pubdatetime': feedItem.publicationDatetime.millisecondsSinceEpoch ~/ 1000,
         'thumbnaillink': feedItem.thumbnailLink,
         'thumbnailwidth': feedItem.thumbnailWidth,
         'thumbnailheight': feedItem.thumbnailHeight,
