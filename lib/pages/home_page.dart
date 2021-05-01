@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
+import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
@@ -86,7 +87,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   Expanded(
                     child: Column(
                       mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        FeedItemHeaderWidget(feedService, notificationService),
                         SizedBox(
                           height: feedItemPaneHeight,
                           child: FeedItemListWidget(feedService)

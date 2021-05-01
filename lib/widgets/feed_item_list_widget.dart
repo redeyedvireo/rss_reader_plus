@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
 
 class FeedItemListWidget extends StatefulWidget {
   FeedService feedService;
