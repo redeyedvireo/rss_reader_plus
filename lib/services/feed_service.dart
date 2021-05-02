@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/parser/feed_identifier.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
 import 'package:rxdart/rxdart.dart';
 import '../models/feed.dart';
@@ -23,6 +24,7 @@ class FeedService {
   
   final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
   final BehaviorSubject feedItemSelected$ = BehaviorSubject<String>();
+  final BehaviorSubject feedUpdated$ = BehaviorSubject<int>();
 
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
@@ -103,188 +105,26 @@ class FeedService {
       final feed = _feeds[feedIndex];
       final feedUrl = feed.url;
       final feedData = await NetworkService.getFeed(feedUrl);
-      final rssFeedVer2 = RssFeed.parse(feedData);
-      final rssFeedVer1 = Rss1Feed.parse(feedData);
-      final numberOfVer2Items = rssFeedVer2.items.length;
-      final numberOfVer1Items = rssFeedVer1.items.length;
-      
-      if (numberOfVer2Items > numberOfVer1Items) {
-        // This is an RSS 2.0 feed
-        await storeNewFeedItemsVersion2(feedId, rssFeedVer2);
-      } else {
-        // This is an RSS 1.0 feed
-        await storeNewFeedItemsVersion1(feedId, rssFeedVer1);
-      }
-      
-      return feedData;
-    } else {
-      return '';
-    }
-  }
 
-  /// Stores new feed items for a version 2.0 RSS feed.
-  Future<void> storeNewFeedItemsVersion2(int feedId, RssFeed rssFeed) async {
-    final existingGuids = await db.readGuids(feedId);
+      try {
+        final feedParser = FeedIdentifier.getFeedParser(feedData);
 
-    final newRssFeedItems = rssFeed.items.where((item) => !existingGuids.contains(item.guid)).toList();
-    final feedItems = newRssFeedItems.map((rssItem) => createFromParsedVersion2(rssItem)).toList();
+        final existingGuids = await db.readGuids(feedId);
 
-    // Store new feed items
-    await db.writeFeedItems(feedId, feedItems);
-  }
+        final newFeedItems = feedParser.getNewFeedItems(existingGuids);
 
-  FeedItem createFromParsedVersion2(RssItem rssItem) {
-    return FeedItem(title: rssItem.title,
-                    author: parseFeedItemAuthorVersion2(rssItem),
-                    link: rssItem.link,
-                    description: rssItem.description,
-                    encodedContent: rssItem.content.value,
-                    categories: rssItem.categories.map((category) => category.value).toList(),
-                    publicationDatetime: parseRssItemDate(rssItem.pubDate),
-                    thumbnailLink: '',
-                    thumbnailWidth: 0,
-                    thumbnailHeight: 0,
-                    guid: rssItem.guid,
-                    feedburnerOrigLink: '',
-                    enclosureLink: '',          // TODO: where to get this?
-                    enclosureLength: 0,         // TODO: where to get this?
-                    enclosureType: '',          // TODO: where to get this?
-                    parentFeedId: 0,
-                    read: false
-                    );
-  }
+        // Store new feed items
+        await db.writeFeedItems(feedId, newFeedItems);
 
-  /// Stores new feed items for a version 1.0 RSS feed.
-  Future<void> storeNewFeedItemsVersion1(int feedId, Rss1Feed rssFeed) async {
-    final existingGuids = await db.readGuids(feedId);
-
-    final newRssFeedItems = rssFeed.items.where((item) {
-      String guid = guidFromVersion1FeedItem(item);
-      return guid.length > 0 && !existingGuids.contains(guid);
-    }).toList();
-
-    final feedItems = newRssFeedItems.map((rssItem) => createFromParsedVersion1(rssItem)).toList();
-
-    // Store new feed items
-    await db.writeFeedItems(feedId, feedItems);
-  }
-
-  FeedItem createFromParsedVersion1(Rss1Item rssItem) {
-    String guid = guidFromVersion1FeedItem(rssItem);
-
-    if (guid.length > 0) {
-      return FeedItem(title: rssItem.title,
-                      author: parseFeedItemAuthorVersion1(rssItem),
-                      link: rssItem.link,
-                      description: rssItem.description,
-                      encodedContent: contentFromVersion1FeedItem(rssItem),
-                      categories: categoriesFromVersion1FeedItem(rssItem),         // RSS 1.0 does not support categories
-                      publicationDatetime: parseRssItemDateVersion1(rssItem),
-                      thumbnailLink: '',
-                      thumbnailWidth: 0,
-                      thumbnailHeight: 0,
-                      guid: guid,
-                      feedburnerOrigLink: '',
-                      enclosureLink: '',          // TODO: where to get this?
-                      enclosureLength: 0,         // TODO: where to get this?
-                      enclosureType: '',          // TODO: where to get this?
-                      parentFeedId: 0,
-                      read: false
-                      );
-    } else {
-      return null;
-    }
-  }
-
-  /// Attempts to parse a date/time.  Tries several formats before giving up.
-  DateTime parseRssItemDate(String pubDateTime) {
-    List<String> possibleDateTimeFormats = [
-      'EEE, d MMM yyyy hh:mm:s Z',
-      'yyyy-MM-ddThh:mm:s Z'
-    ];
-
-    // possibleDateTimeFormats.forEach((possibleDateTimeFormat) {
-    //   try {
-    //     print('Attempting to parse: $pubDateTime');
-    //     final jiffyDate = Jiffy(pubDateTime, possibleDateTimeFormat);
-    //     print('Successfully parsed $pubDateTime');
-    //     return jiffyDate.dateTime;
-    //   } catch (e) {
-    //     print('Error parsing $pubDateTime: ${e.toString()}');
-    //   }
-    // });
-
-    try {
-      print('Attempting to parse: $pubDateTime');
-      final jiffyDate = Jiffy(pubDateTime);
-      print('Successfully parsed $pubDateTime');
-      return jiffyDate.dateTime;
-    } catch (e) {
-      print('Error parsing $pubDateTime: ${e.toString()}');
-    }
-
-    return DateTime.now();
-  }
-
-  DateTime parseRssItemDateVersion1(Rss1Item rssItem) {
-    if (rssItem.dc != null && rssItem.dc.date != null) {
-      return parseRssItemDate(rssItem.dc.date);
-    } else {
-      return DateTime.now();
-    }
-  }
-
-  String guidFromVersion1FeedItem(Rss1Item rssItem) {
-    if (rssItem.dc != null && rssItem.dc.identifier != null) {
-      return rssItem.dc.identifier;
-    } else {
-      if (rssItem.link != null) {
-        return rssItem.link;
-      } else {
-        if (rssItem.title != null) {
-          return rssItem.title;     // TODO: Remove spaces
-        } else {
-          return '';        // There is no simple way to identify the feed item
+        if (feedId == _selectedFeedId) {
+          // Invalidate feed item cache
+          _feedItemsLoaded = false;
         }
+
+        this.feedUpdated$.add(feedId);
+      } catch (e) {
+        print('[FeedService.fetchFeed] $e');
       }
-    }
-  }
-
-  List<String> categoriesFromVersion1FeedItem(Rss1Item rssItem) {
-    if (rssItem.dc != null) {
-      return rssItem.dc.subjects;
-    } else {
-      return [];
-    }
-  }
-
-  String contentFromVersion1FeedItem(Rss1Item rssItem) {
-    return rssItem.content != null ? rssItem.content : rssItem.description;
-  }
-
-  String parseFeedItemAuthorVersion2(RssItem rssItem) {
-    if (rssItem.author != null) {
-      return rssItem.author;
-    } else if (rssItem.dc.creator != null) {
-      return rssItem.dc.creator;
-    } else if (rssItem.dc.contributor != null) {
-      return rssItem.dc.contributor;
-    } else {
-      return '';
-    }
-  }
-
-  String parseFeedItemAuthorVersion1(Rss1Item rssItem) {
-    if (rssItem.dc != null) {
-      if (rssItem.dc.creator != null) {
-        return rssItem.dc.creator;
-      } else if (rssItem.dc.contributor != null) {
-        return rssItem.dc.contributor;
-      } else {
-        return '';
-      }
-    } else {
-      return '';
     }
   }
 }

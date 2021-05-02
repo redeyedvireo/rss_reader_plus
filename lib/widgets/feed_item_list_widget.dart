@@ -21,9 +21,18 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   @override
   void initState() {
     super.initState();
+
     widget.feedService.feedSelected$.listen((feedId) {
       setState(() {
       });
+    });
+
+    widget.feedService.feedUpdated$.listen((feedId) {
+      // If the feed that was updated is the one being displayed, then refresh contents
+      if (feedId == widget.feedService.selectedFeedId) {
+        setState(() {
+        });
+      }
     });
   }
 
