@@ -18,28 +18,36 @@ class FeedListWidget extends StatefulWidget {
 class _FeedListWidgetState extends State<FeedListWidget> {
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
+  List<Feed> _feeds;
   
+  @override
+  void initState() {
+    super.initState();
+
+    _feeds = [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: widget.feedService.getFeeds(),
+      future: _fetchFeeds(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return Center(child: Text(''));
-
             case ConnectionState.active:
-              return Center(child: Text(''),);
-
             case ConnectionState.done:
-              return _buildAll(context, snapshot.data, widget.feedService, widget.notificationService);
+              return _buildAll(context, _feeds, widget.feedService, widget.notificationService);
 
             default:
               return Center(child: Text(''));
           }
       },
     ); 
+  }
+
+  Future<void> _fetchFeeds() async {
+    _feeds = await widget.feedService.getFeeds();
   }
 
   Widget _buildAll(BuildContext context, List<Feed> feeds, FeedService feedService, NotificationService notificationService) {
@@ -74,6 +82,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
             _previousScrollPosition = _controller.position.pixels;
             notificationService.setStatusMessage('${feed.name} selected', timeout: 1);
             widget.feedService.selectFeed(feed.id);
+            setState(() { });
           },
           onSecondaryTapUp: (TapUpDetails details) async {
             // notificationService.setStatusMessage('Feed ${feed.name}, ID: ${feed.id}');
