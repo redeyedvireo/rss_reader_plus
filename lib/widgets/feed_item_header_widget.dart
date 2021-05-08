@@ -31,15 +31,8 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
                         'No feed selected';
     List<Widget> children = [];
 
-    if (widget.feedService.selectedFeed.favicon != null) {
-      children.add(Image.memory(
-        widget.feedService.selectedFeed.favicon,
-        height: 20.0,
-      ));
-      children.add(SizedBox(width: 10.0));
-    } else {
-      children.add(Icon(Icons.rss_feed_rounded));
-    }
+    children.add(widget.feedService.getFeedIconWidget(widget.feedService.selectedFeedId));
+    children.add(SizedBox(width: 10.0));
 
     children.add(Text(feedTitle));
 

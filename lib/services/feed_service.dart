@@ -97,6 +97,22 @@ class FeedService {
     return feedItemList;
   }
 
+  Widget getFeedIconWidget(int feedId) {
+    final feed = _findFeed(feedId);
+    if (feed.favicon != null) {
+      return Image.memory(
+        feed.favicon,
+        height: 20.0,
+      );
+    } else {
+      return Icon(Icons.rss_feed_rounded);
+    }
+  }
+
+  Feed _findFeed(int feedId) {
+    return _feeds.firstWhere((feed) => feed.id == feedId, orElse: () => Feed(),);
+  }
+
   /// Sets the read flag for the given feed item
   Future<void> setFeedItemReadFlag(String feedItemId, bool read) async {
     final count = await db.setFeedItemReadFlag(feedItemId, _selectedFeedId, read);

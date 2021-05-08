@@ -86,6 +86,8 @@ class _FeedListWidgetState extends State<FeedListWidget> {
           },
           child: Row(
             children: <Widget>[
+              feedService.getFeedIconWidget(feed.id),
+              SizedBox(width: 5.0),
               Expanded(child: _feedRowText(context, feed, feedService)),
             ],
           ),
