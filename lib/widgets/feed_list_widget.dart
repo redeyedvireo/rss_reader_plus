@@ -27,6 +27,10 @@ class _FeedListWidgetState extends State<FeedListWidget> {
 
     _feeds = [];
     _unreadCount = {};
+
+    widget.feedService.feedUnreadCountChanged$.listen((feedId) {
+      setState(() { });
+    });
   }
 
   @override

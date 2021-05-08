@@ -25,6 +25,7 @@ class FeedService {
   final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
   final BehaviorSubject feedItemSelected$ = BehaviorSubject<String>();
   final BehaviorSubject feedUpdated$ = BehaviorSubject<int>();
+  final BehaviorSubject feedUnreadCountChanged$ = BehaviorSubject<int>();
 
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
@@ -120,6 +121,9 @@ class FeedService {
     if (count > 0) {
       final feedItem = _feedItems[feedItemId];
       feedItem.read = read;
+
+      final newUnreadCount = await numberOfUnreadFeedItems(_selectedFeedId);
+      feedUnreadCountChanged$.add(newUnreadCount);
     } else {
       print('[FeedService.setFeedItemReadFlag] Did not update feed item');
     }
