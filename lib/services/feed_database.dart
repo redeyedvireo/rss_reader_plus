@@ -223,4 +223,17 @@ class FeedDatabase {
 
     return count;
   }
+
+  Future<int> getNumberOfUnreadFeedItems(int feedId) async {
+    final tableName = feedIdToString(feedId);
+
+    final result = await sqlfliteDb.rawQuery('select count(*) from $tableName where readFlag = 0');
+    int count = 0;
+
+    if (result.length > 0) {
+      count = result.first['count(*)'];
+    }
+
+    return count;
+  }
 }

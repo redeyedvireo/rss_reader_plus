@@ -19,12 +19,14 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
   List<Feed> _feeds;
+  Map<int, int> _unreadCount;
   
   @override
   void initState() {
     super.initState();
 
     _feeds = [];
+    _unreadCount = {};
   }
 
   @override
@@ -48,6 +50,13 @@ class _FeedListWidgetState extends State<FeedListWidget> {
 
   Future<void> _fetchFeeds() async {
     _feeds = await widget.feedService.getFeeds();
+
+    _unreadCount = {};
+
+    for (final feed in _feeds) {
+      final count = await widget.feedService.numberOfUnreadFeedItems(feed.id);
+      _unreadCount[feed.id] = count;
+    }
   }
 
   Widget _buildAll(BuildContext context, List<Feed> feeds, FeedService feedService, NotificationService notificationService) {
@@ -123,9 +132,17 @@ class _FeedListWidgetState extends State<FeedListWidget> {
     return _isSelected(feed, feedService) ? Colors.white : Colors.black;
   }
 
+  int _feedUnread(int feedId) {
+    return _unreadCount.containsKey(feedId) ? _unreadCount[feedId] : 0;
+  }
+
   Widget _feedRowText(BuildContext context, Feed feed, FeedService feedService) {
-    return Text(feed.name, overflow: TextOverflow.ellipsis,
-      style: TextStyle(color: _textColor(feed, feedService)),
+    final _unreadForFeed = _feedUnread(feed.id);
+    final label = _unreadForFeed > 0 ? '${feed.name} ($_unreadForFeed)' : feed.name;
+
+    return Text(label, overflow: TextOverflow.ellipsis,
+      style: TextStyle(color: _textColor(feed, feedService),
+                        fontWeight: _unreadForFeed > 0 ? FontWeight.bold : FontWeight.normal),
     );
   }
 }

@@ -156,4 +156,9 @@ class FeedService {
       }
     }
   }
+
+  /// Returns the number of unread feed items for the given feed.
+  Future<int> numberOfUnreadFeedItems(int feedId) async {
+    return db.getNumberOfUnreadFeedItems(feedId);
+  }
 }
