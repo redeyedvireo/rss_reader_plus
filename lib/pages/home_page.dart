@@ -10,7 +10,7 @@ import '../widgets/feed_item_view_widget.dart';
 import '../services/feed_service.dart';
 
 // Pane size constraints
-const feedPaneWidth = 200.0;
+const feedPaneWidth = 250.0;
 const feedItemPaneHeight = 300.0;
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
