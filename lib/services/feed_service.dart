@@ -63,6 +63,7 @@ class FeedService {
 
   void selectFeed(int feedId) {
     if (_selectedFeedId != feedId) {
+      _selectedFeedItem = '';
       _selectedFeedId = feedId;
       feedSelected$.add(feedId);
       _feedItems = {};

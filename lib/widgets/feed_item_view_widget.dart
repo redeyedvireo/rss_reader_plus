@@ -28,6 +28,10 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
       setState(() {
       });
     });
+
+    widget.feedService.feedSelected$.listen((feed) {
+      setState(() { });
+    });
   }
 
   @override
