@@ -17,10 +17,12 @@ class FeedItemListWidget extends StatefulWidget {
 class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
+  List<FeedItem> _feedItems;
 
   @override
   void initState() {
     super.initState();
+    _feedItems = [];
 
     widget.feedService.feedSelected$.listen((feedId) {
       setState(() {
@@ -39,24 +41,24 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: widget.feedService.getFeedItems(),
+      future: _getFeedItems(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return Center(child: Text(''));
-
             case ConnectionState.active:
-              return Center(child: Text(''),);
-
             case ConnectionState.done:
-              return _buildAll(context, widget.feedService, snapshot.data);
+              return _buildAll(context, widget.feedService, _feedItems);
 
             default:
               return Center(child: Text(''));
           }
       },
     );
+  }
+
+  Future<void> _getFeedItems() async {
+    _feedItems = await widget.feedService.getFeedItems();
   }
 
   // TODO: The list view could probably be refactored into a "SelectableList" widget.
@@ -78,7 +80,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
             itemCount: feedItems.length,
             controller: _controller,
             itemBuilder: (BuildContext context, int index) {
-              return _buildFeedItemRow(context, feedItems[index], feedService);
+              return _buildFeedItemRow(context, index, feedItems[index], feedService);
             },
           )
         )
@@ -86,7 +88,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     }
   }
 
-  Widget _buildFeedItemRow(BuildContext context, FeedItem feedItem, FeedService feedService) {
+  Widget _buildFeedItemRow(BuildContext context, int index, FeedItem feedItem, FeedService feedService) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
       color: _backgroundColor(feedItem, feedService),
@@ -96,7 +98,11 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
           onTap: () async {
             print("Tapped on feed item ${feedItem.guid}");
             widget.feedService.selectFeedItem(feedItem.guid);
+            await widget.feedService.setFeedItemReadFlag(feedItem.guid, true);
             _previousScrollPosition = _controller.position.pixels;
+            setState(() {
+              _feedItems[index].read = true;
+            });
           },
           child: Row(
             children: <Widget>[
@@ -139,7 +145,8 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
 
   Widget _rowText(String text, FeedItem feedItem, FeedService feedService) {
     return Text(text, overflow: TextOverflow.ellipsis,
-      style: TextStyle(color: _textColor(feedItem, feedService)),
+      style: TextStyle(color: _textColor(feedItem, feedService),
+                       fontWeight: feedItem.read ? FontWeight.normal : FontWeight.bold),
     );
   }
 }

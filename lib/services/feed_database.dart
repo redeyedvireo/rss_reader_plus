@@ -214,4 +214,13 @@ class FeedDatabase {
       });
     }
   }
+
+  Future<int> setFeedItemReadFlag(String feedItemId, int feedId, bool readFlag) async {
+    final tableName = feedIdToString(feedId);
+
+    final count = await sqlfliteDb.rawUpdate('update $tableName set readflag = ? where guid = ?',
+                                             [readFlag ? 1 : 0, feedItemId]);
+
+    return count;
+  }
 }

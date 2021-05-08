@@ -97,6 +97,18 @@ class FeedService {
     return feedItemList;
   }
 
+  /// Sets the read flag for the given feed item
+  Future<void> setFeedItemReadFlag(String feedItemId, bool read) async {
+    final count = await db.setFeedItemReadFlag(feedItemId, _selectedFeedId, read);
+
+    if (count > 0) {
+      final feedItem = _feedItems[feedItemId];
+      feedItem.read = read;
+    } else {
+      print('[FeedService.setFeedItemReadFlag] Did not update feed item');
+    }
+  }
+
   /// Fetch feed from the internet.
   /// @param feedId - ID of feed in the database
   Future<void> fetchFeed(int feedId) async {
