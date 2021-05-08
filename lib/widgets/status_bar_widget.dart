@@ -11,12 +11,15 @@ class StatusBarWidget extends StatefulWidget {
 }
 
 class _StatusBarWidgetState extends State<StatusBarWidget> {
+  String _currentMessage = '';
+
   @override
   void initState() {
     super.initState();
     
-    widget.notificationService.statusBarNotification$.listen((value) {
+    widget.notificationService.statusBarNotification$.listen((newMessage) {
       setState(() {
+        _currentMessage = newMessage;
       });
     });
   }
@@ -27,7 +30,7 @@ class _StatusBarWidgetState extends State<StatusBarWidget> {
       height: 20.0,
       child: Container(
         color: Colors.grey[300],
-        child: Text(widget.notificationService.statusMessage, textAlign: TextAlign.left,)
+        child: Text(_currentMessage, textAlign: TextAlign.left,)
     ));
   }
 }
