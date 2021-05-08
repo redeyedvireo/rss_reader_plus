@@ -93,6 +93,7 @@ class FeedService {
     }
 
     List<FeedItem> feedItemList = _feedItems.values.toList();
+    feedItemList.sort((a, b) => a.publicationDatetime.compareTo(b.publicationDatetime));
     return feedItemList;
   }
 
