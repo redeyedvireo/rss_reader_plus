@@ -76,12 +76,15 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
           isAlwaysShown: true,
           thickness: 12.0,
           controller: _controller,
-          child:ListView.builder(
-            itemCount: feedItems.length,
-            controller: _controller,
-            itemBuilder: (BuildContext context, int index) {
-              return _buildFeedItemRow(context, index, feedItems[index], feedService);
-            },
+          child:Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: ListView.builder(
+              itemCount: feedItems.length,
+              controller: _controller,
+              itemBuilder: (BuildContext context, int index) {
+                return _buildFeedItemRow(context, index, feedItems[index], feedService);
+              },
+            ),
           )
         )
       );
