@@ -1,16 +1,12 @@
-import 'package:dart_rss/domain/rss1_item.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:jiffy/jiffy.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/parser/feed_identifier.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
 import 'package:rxdart/rxdart.dart';
 import '../models/feed.dart';
-import 'package:dart_rss/dart_rss.dart';
-import 'package:dart_rss/domain/rss1_feed.dart';
-
 import 'feed_database.dart';
 
 
@@ -26,6 +22,7 @@ class FeedService {
   final BehaviorSubject feedItemSelected$ = BehaviorSubject<String>();
   final BehaviorSubject feedUpdated$ = BehaviorSubject<int>();
   final BehaviorSubject feedUnreadCountChanged$ = BehaviorSubject<int>();
+  final BehaviorSubject newFeed$ = BehaviorSubject<int>();
 
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
@@ -73,7 +70,11 @@ class FeedService {
 
   Future<List<Feed>> getFeeds() async {
     if (_feeds.length == 0) {
-      _feeds = await db.readFeeds();
+      try {
+        _feeds = await db.readFeeds();
+      } catch (e) {
+        print('[getFeeds] ${e.message}');
+      }
     }
     
     return _feeds;
@@ -112,7 +113,11 @@ class FeedService {
   }
 
   Feed _findFeed(int feedId) {
-    return _feeds.firstWhere((feed) => feed.id == feedId, orElse: () => Feed(),);
+    return _feeds.firstWhere((feed) => feed.id == feedId, orElse: () => Feed());
+  }
+
+  Feed getFeed(int feedId) {
+    return _findFeed(feedId);
   }
 
   /// Sets the read flag for the given feed item
@@ -155,7 +160,7 @@ class FeedService {
           _feedItemsLoaded = false;
         }
 
-        this.feedUpdated$.add(feedId);
+        feedUpdated$.add(feedId);
       } catch (e) {
         print('[FeedService.fetchFeed] $e');
       }
@@ -165,5 +170,43 @@ class FeedService {
   /// Returns the number of unread feed items for the given feed.
   Future<int> numberOfUnreadFeedItems(int feedId) async {
     return db.getNumberOfUnreadFeedItems(feedId);
+  }
+
+  /// Note - this may throw an exception
+  Future<int> newFeed(String url) async {
+    // TODO: Should throw an error if necessary; the contents of the exception
+    //  will be the error message.
+    final feedContents = await NetworkService.getFeed(url);
+    final feedParser = FeedIdentifier.getFeedParser(feedContents);
+
+    if (feedParser == null) {
+      throw FormatException('Error parsing feed');
+    }
+
+    final feed = await feedParser.getFeedMetaData(url);
+
+    final feedId = await db.writeFeed(feed);
+
+    if (feedId > 0) {
+      feed.id = feedId;
+      _feeds.add(feed);
+      newFeed$.add(feedId);
+
+      await db.createFeedItemTable(feedId);
+      
+      // Write feed items
+      final newFeedItems = feedParser.getNewFeedItems([]);
+
+      // Store new feed items
+      await db.writeFeedItems(feedId, newFeedItems);
+
+      // No need to emit feedUpdated$ here, since this feed won't be displayed (because it is new)
+    } else {
+      // This should not happen, since database errors are handled by catching an exception
+      print('[newFeed] Error: feed not written to the database');
+      throw FileSystemException('Error: feed not written to the database');
+    }
+
+    return feedId;
   }
 }

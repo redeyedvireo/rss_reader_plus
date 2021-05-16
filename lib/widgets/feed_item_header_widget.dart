@@ -28,7 +28,7 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
   Widget build(BuildContext context) {
     final feedTitle = widget.feedService.selectedFeed.title != null ?
                         widget.feedService.selectedFeed.title :
-                        'No feed selected';
+                        '<No feed title>';
     List<Widget> children = [];
 
     children.add(widget.feedService.getFeedIconWidget(widget.feedService.selectedFeedId));

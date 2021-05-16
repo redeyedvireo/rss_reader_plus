@@ -1,7 +1,11 @@
 
+import 'dart:typed_data';
+
 import 'package:dart_rss/dart_rss.dart';
+import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/parser/feed_parser.dart';
+import 'package:rss_reader_plus/services/network_service.dart';
 import 'package:rss_reader_plus/util/utils.dart';
 
 class AtomParser extends FeedParser {
@@ -23,6 +27,29 @@ class AtomParser extends FeedParser {
     return validFeed;
   }
 
+  Future<Feed> getFeedMetaData(String feedUrl) async {
+    final link = getFirstNonNull(parsedFeed.links);
+    final iconPath = getNullableItem(parsedFeed.icon, '');
+    Uint8List faviconData = Uint8List(0);
+    
+    if (iconPath.isNotEmpty) {
+      faviconData = await NetworkService.getIcon('feedUrl/$iconPath');
+    }
+    
+    return Feed(title: getNullableItem(parsedFeed.title, 'Untitled feed'),
+                name: getNullableItem(parsedFeed.title, ''),
+                url: feedUrl,
+                dateAdded: DateTime.now(),
+                lastUpdated: DateTime.now(),
+                lastPurged: DateTime.now(),
+                language: link?.hreflang != null ? link.hreflang : '',
+                description: getNullableItem(parsedFeed.subtitle, ''),
+                webPageLink: link?.href != null ? link.href : '',
+                favicon: faviconData,
+                image: null
+    );
+  }
+  
   int numberOfFeedItems() {
     return validFeed ? parsedFeed.items.length : -1;
   }

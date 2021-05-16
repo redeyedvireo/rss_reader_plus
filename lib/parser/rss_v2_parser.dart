@@ -1,7 +1,11 @@
 
+import 'dart:typed_data';
+
 import 'package:dart_rss/dart_rss.dart';
+import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/parser/feed_parser.dart';
+import 'package:rss_reader_plus/services/network_service.dart';
 import 'package:rss_reader_plus/util/utils.dart';
 
 class RssV2Parser extends FeedParser {
@@ -23,6 +27,30 @@ class RssV2Parser extends FeedParser {
     return validFeed;
   }
 
+  Future<Feed> getFeedMetaData(String feedUrl) async {
+    Uint8List faviconData = Uint8List(0);
+
+    if (parsedFeed.image != null) {
+      final imageUrl = getNullableItem(parsedFeed.image?.url, '');
+      if (imageUrl.isNotEmpty) {
+        faviconData = await NetworkService.getIcon(imageUrl);
+      }
+    }
+    
+    return Feed(title: getFirstNonNull([parsedFeed.title, parsedFeed?.dc?.title, 'Untitled feed']),
+                name: getFirstNonNull([parsedFeed.title, parsedFeed?.dc?.title, 'Untitled feed']),
+                url: feedUrl,
+                dateAdded: DateTime.now(),
+                lastUpdated: DateTime.now(),
+                lastPurged: DateTime.now(),
+                language: getFirstNonNull([parsedFeed.language, parsedFeed?.dc?.language, '']),
+                description: getFirstNonNull([parsedFeed.description, parsedFeed?.dc?.description, '']),
+                webPageLink: getNullableItem(parsedFeed.link, feedUrl),
+                favicon: faviconData,
+                image: null
+    );
+  }
+      
   int numberOfFeedItems() {
     return validFeed ? parsedFeed.items.length : -1;
   }
@@ -31,7 +59,7 @@ class RssV2Parser extends FeedParser {
     final newRssFeedItems = parsedFeed.items.where((item) => !existingGuids.contains(item.guid)).toList();
     return newRssFeedItems.map((rssItem) => _createFromParsed(rssItem)).toList();
   }
-
+    
   FeedItem _createFromParsed(RssItem rssItem) {
     return FeedItem(title: getNullableItem(rssItem.title, ''),
                     author: getAuthorFromParsed(rssItem),
@@ -52,7 +80,7 @@ class RssV2Parser extends FeedParser {
                     read: false
                 );
   }
-
+    
   String getAuthorFromParsed(RssItem rssItem) {
     return getFirstNonNull([
       rssItem.author,
@@ -67,5 +95,5 @@ class RssV2Parser extends FeedParser {
       rssItem.content?.value,
       ''
     ]);
-  }
+  }   
 }

@@ -93,6 +93,31 @@ class FeedDatabase {
     // await db.execute(sql);
   }
 
+  Future<void> createFeedItemTable(int feedId) async {
+    final tableName = feedIdToString(feedId);
+
+    String sql = 'CREATE TABLE $tableName( ' +
+          'title text, ' +
+          'author text, ' +
+          'link text, ' +
+          'description text, ' +
+          'categories text, ' +
+          'pubdatetime integer, ' +
+          'thumbnaillink text, ' +
+          'thumbnailwidth integer, ' +
+          'thumbnailheight integer, ' +
+          'guid text UNIQUE, ' +
+          'feedburneroriglink text, ' +
+          'readflag integer, ' +
+          'enclosurelink text, ' +
+          'enclosurelength integer, ' +
+          'enclosuretype text, ' +
+          'contentencoded text ' +
+        ')';
+
+    await sqlfliteDb.execute(sql);
+  }
+
   void setSqlfliteDb(Database database) {
     sqlfliteDb = database;
   }
@@ -235,5 +260,36 @@ class FeedDatabase {
     }
 
     return count;
+  }
+
+  /// Note: this may throw an exception
+  Future<int> writeFeed(Feed feed) async {
+    await sqlfliteDb.insert(feedsTable, {
+      'name': feed.name,
+      'url': feed.url,
+      'parentid': feed.parentId,
+      'added': feed.dateAdded.millisecondsSinceEpoch ~/ 1000,
+      'lastupdated': feed.lastUpdated.millisecondsSinceEpoch ~/ 1000,
+      'title': feed.title,
+      'language': feed.language,
+      'description': feed.description,
+      'webpagelink': feed.webPageLink,
+      'favicon': feed.favicon,
+      'image': feed.image,
+      'lastpurged': feed.lastPurged.millisecondsSinceEpoch ~/ 1000
+    });
+    
+    // Retrieve the newly-inserted item, so that its ID can be obtained
+    final queryResult = await sqlfliteDb.query(feedsTable,
+                                                columns: ['feedid'],
+                                                where: 'url = ?',
+                                                whereArgs: [feed.url]);
+
+    if (queryResult.isNotEmpty) {
+      int feedId = queryResult.first['feedid'];
+      return feedId;
+    } else {
+      return 0;
+    }
   }
 }

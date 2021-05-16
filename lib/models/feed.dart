@@ -20,7 +20,7 @@ class Feed {
 
   // TODO: Figure out what data types these need to be.
   Uint8List favicon;  // Icon for the feed's main web site (for display in the feed tree)
-  // image    // Image from the feed itself.  This is generally not an icon
+  Uint8List image;    // Image from the feed itself.  This is generally not an icon
 
   Feed({this.id,
         this.parentId,
@@ -33,6 +33,9 @@ class Feed {
         this.language,
         this.description,
         this.webPageLink,
-        this.favicon
-      });
+        this.favicon,
+        this.image
+      }) {
+        parentId = 0;
+      }
 }

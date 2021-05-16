@@ -1,4 +1,5 @@
 
+import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 
 abstract class FeedParser {
@@ -7,4 +8,5 @@ abstract class FeedParser {
   int numberOfFeedItems();
 
   List<FeedItem> getNewFeedItems(List<String> existingGuids);
+  Future<Feed> getFeedMetaData(String feedUrl);
 }

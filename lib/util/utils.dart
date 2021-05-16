@@ -16,7 +16,7 @@ DateTime parseDate(String inDateTime) {
 
   DateTime result = DateTime.now();
 
-  print('[parseDate] Attempting to parse: $inDateTime');
+  // print('[parseDate] Attempting to parse: $inDateTime');
 
   // First, try to parse without a format string
   try {
@@ -24,7 +24,7 @@ DateTime parseDate(String inDateTime) {
     print('Successfully parsed $inDateTime: ${jiffyDate.dateTime}');
     result = jiffyDate.dateTime;
   } catch (e) {
-    print('[parseDate] First attempt - parsing $inDateTime: ${e.toString()}');
+    // print('[parseDate] First attempt - parsing $inDateTime: ${e.toString()}');
   }
 
   possibleDateTimeFormats.forEach((possibleDateTimeFormat) {
@@ -33,7 +33,7 @@ DateTime parseDate(String inDateTime) {
       print('Successfully parsed $inDateTime: ${jiffyDate.dateTime}');
       result = jiffyDate.dateTime;
     } catch (e) {
-      print('[parseDate] With format - parsing $inDateTime: ${e.toString()}');
+      // print('[parseDate] With format - parsing $inDateTime: ${e.toString()}');
     }
   });
 

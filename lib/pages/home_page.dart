@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/dialogs/new_feed_dialog.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
@@ -62,7 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text('RssReader Plus'),
         actions: [
-          ElevatedButton(onPressed: _addFeed, child: Text('Add Feed')),
+          ElevatedButton(onPressed: () async {
+            _addFeed(context, feedService, notificationService);
+          }, child: Text('Add Feed')),
           ElevatedButton(onPressed: _updateFeeds, child: Text('Update Feeds')),
           ElevatedButton(onPressed: _purgeOldNews, child: Text('Purge Old News')),
           ElevatedButton(onPressed: _manageGlobalFilters, child: Text('Manage Global Filters')),
@@ -111,8 +114,30 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _addFeed() {
-    print('Add Feed tapped');
+  void _addFeed(BuildContext context, FeedService feedService, NotificationService notificationService) async {
+    final url = await NewFeedDialog.showNewFeedDialog(context);
+    if (url.isNotEmpty) {
+      print('Feed URL: $url');
+
+      try {
+        final feedId = await feedService.newFeed(url);
+
+        if (feedId > 0) {
+          // TODO: Consider popping up a dialog asking if the user would like to switch to the new feed.
+          //  (or, maybe just go ahead and switch to it.)
+          final feed = feedService.getFeed(feedId);
+          notificationService.setStatusMessage('Feed ${feed.title} added');
+
+          feedService.selectFeed(feedId);
+        } else {
+          print('[_addFeed] Error adding feed');
+          // TODO: Need error dialog
+        }
+      } catch (e) {
+        print('[_addFeed] ${e.message}');
+        // TODO: Need error dialog
+      }
+    }
   }
 
   void _updateFeeds() {
