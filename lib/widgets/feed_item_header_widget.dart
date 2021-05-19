@@ -49,17 +49,28 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             feedTitleGroup,
-            Ink(
-              decoration: ShapeDecoration(
-                color: Colors.grey[100],
-                shape: CircleBorder()),
-              child: IconButton(
-                icon: Icon(Icons.refresh),
-                onPressed: () async {
-                  widget.notificationService.setStatusMessage('Updating ${widget.feedService.selectedFeed.name}...');
-                  await widget.feedService.fetchFeed(widget.feedService.selectedFeed.id);
-              }),
-            )
+            PopupMenuButton<String>(
+              onSelected: (String result) async {
+                switch (result) {
+                  case 'refresh':
+                    widget.notificationService.setStatusMessage('Updating ${widget.feedService.selectedFeed.name}...');
+                    await widget.feedService.fetchFeed(widget.feedService.selectedFeed.id);
+                    break;
+
+                  default:
+                    print('Unknown menu item selected: $result');
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              PopupMenuItem(
+                value: 'refresh',
+                child: Text('Refresh'),),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'delete',
+                child: Text('Delete Feed'),)
+            ])
           ],
         ),),
     );
