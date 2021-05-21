@@ -209,4 +209,8 @@ class FeedService {
 
     return feedId;
   }
+
+  Future<void> deleteFeed(int feedId) async {
+    print('deleteFeed not implemented');
+  }
 }

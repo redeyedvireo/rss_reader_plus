@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
+import 'package:rss_reader_plus/dialogs/ok_cancel_dialog.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
+
+enum FeedMenuAction { Refresh, Delete }
 
 class FeedItemHeaderWidget extends StatefulWidget {
   FeedService feedService;  
@@ -49,12 +52,25 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             feedTitleGroup,
-            PopupMenuButton<String>(
-              onSelected: (String result) async {
+            PopupMenuButton<FeedMenuAction>(
+              onSelected: (FeedMenuAction result) async {
                 switch (result) {
-                  case 'refresh':
+                  case FeedMenuAction.Refresh:
                     widget.notificationService.setStatusMessage('Updating ${widget.feedService.selectedFeed.name}...');
                     await widget.feedService.fetchFeed(widget.feedService.selectedFeed.id);
+                    break;
+
+                  case FeedMenuAction.Delete:
+                    // TODO: Show a confirmation dialog
+                    final okToDelete = await showOkCancelDialog(context,
+                    'Delete Feed?',
+                    'Delete ${widget.feedService.selectedFeed.name}',
+                    okButtonText: 'Yes',
+                    cancelButtonText: 'No');
+
+                    if (okToDelete) {
+                      await widget.feedService.deleteFeed(widget.feedService.selectedFeed.id);
+                    }
                     break;
 
                   default:
@@ -62,14 +78,16 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
                     break;
                 }
               },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<FeedMenuAction>>[
               PopupMenuItem(
-                value: 'refresh',
+                value: FeedMenuAction.Refresh,
                 child: Text('Refresh'),),
               PopupMenuDivider(),
               PopupMenuItem(
-                value: 'delete',
-                child: Text('Delete Feed'),)
+                value: FeedMenuAction.Delete,
+                child: Text('Delete Feed',
+                  style: TextStyle(color: Colors.red),
+                ),)
             ])
           ],
         ),),
