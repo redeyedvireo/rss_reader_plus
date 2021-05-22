@@ -22,7 +22,7 @@ class FeedService {
   final BehaviorSubject feedItemSelected$ = BehaviorSubject<String>();
   final BehaviorSubject feedUpdated$ = BehaviorSubject<int>();
   final BehaviorSubject feedUnreadCountChanged$ = BehaviorSubject<int>();
-  final BehaviorSubject newFeed$ = BehaviorSubject<int>();
+  final BehaviorSubject feedsUpdated$ = BehaviorSubject<int>();             // Emitted when a feed has been added or deleted
 
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
@@ -190,7 +190,7 @@ class FeedService {
     if (feedId > 0) {
       feed.id = feedId;
       _feeds.add(feed);
-      newFeed$.add(feedId);
+      feedsUpdated$.add(feedId);
 
       await db.createFeedItemTable(feedId);
       
@@ -211,6 +211,24 @@ class FeedService {
   }
 
   Future<void> deleteFeed(int feedId) async {
-    print('deleteFeed not implemented');
+    try {
+      await db.deleteFeedItemTable(feedId);
+      final success = await db.removeFeed(feedId);
+      if (!success) {
+        print('[deleteFeed] Failed to delete feed');
+      }
+
+      _feeds.removeWhere((element) => element.id == feedId);
+
+      // If the feed was the selected feed (and it likely will be), select a new feed.
+      if (_selectedFeedId == feedId) {
+        final newFeedId = _feeds.first.id;
+        selectFeed(newFeedId);
+      }
+      
+      feedsUpdated$.add(_selectedFeedId);
+    } catch (e) {
+      print('[deleteFeed] ${e.message}');
+    }
   }
 }

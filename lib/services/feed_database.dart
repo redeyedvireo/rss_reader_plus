@@ -292,4 +292,19 @@ class FeedDatabase {
       return 0;
     }
   }
+
+  /// Deletes a feed item table
+  Future<void> deleteFeedItemTable(int feedId) async {
+    final tableName = feedIdToString(feedId);
+
+    await sqlfliteDb.execute('drop table $tableName');
+  }
+
+  /// Removes a feed from the feeds table.
+  Future<bool> removeFeed(int feedId) async {
+    final numRowsRemoved = await sqlfliteDb.delete(feedsTable,
+                                                   where: 'feedid = ?',
+                                                   whereArgs: [feedId]);
+    return numRowsRemoved > 0;
+  }
 }

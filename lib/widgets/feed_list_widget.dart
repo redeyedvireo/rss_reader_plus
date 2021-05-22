@@ -32,7 +32,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
       setState(() { });
     });
 
-    widget.feedService.newFeed$.listen((feedId) {
+    widget.feedService.feedsUpdated$.listen((feedId) {
       setState(() {
       });
     });
