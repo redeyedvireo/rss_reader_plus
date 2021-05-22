@@ -21,7 +21,7 @@ class RssV1Parser extends FeedParser{
       parsedFeed = Rss1Feed.parse(rawFeedData);
       validFeed = true;
     } catch (e) {
-      print('[RssV1Parser.parse] Is not an RSS 1.0 feed: $e');
+      // print('[RssV1Parser.parse] Is not an RSS 1.0 feed: $e');
       validFeed = false;
     }
 

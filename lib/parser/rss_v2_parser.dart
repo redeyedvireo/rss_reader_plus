@@ -20,7 +20,7 @@ class RssV2Parser extends FeedParser {
       parsedFeed = RssFeed.parse(rawFeedData);
       validFeed =  true;
     } catch (e) {
-      print('[RssV2Parser.parse] Is not an RSS 2.0 feed: $e');
+      // print('[RssV2Parser.parse] Is not an RSS 2.0 feed: $e');
       validFeed =  false;
     }
 
