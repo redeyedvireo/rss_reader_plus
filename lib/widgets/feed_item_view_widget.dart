@@ -56,26 +56,22 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
         Text(feedItem.title,
           style: TextStyle(fontSize: 24)),
         Flexible(
-          child: Scrollbar(
-            isAlwaysShown: true,
-            thickness: 12.0,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4.0, right: 15.0),
-              child: SingleChildScrollView(
-                child: Html(
-                  onLinkTap: (url) async {
-                    print('Link tapped: $url');
-                    notificationService.setStatusMessage(url, timeout: 5);
-                    await canLaunch(url) ? await launch(url) : notificationService.setStatusMessage('Cannot launch $url', timeout: 5);
-                  },
-                  onImageTap: (url) {
-                    print('Image tapped: $url');
-                  },
-                  onImageError: (Object exception, StackTrace stackTrace) {
-                    print('Image error');
-                  },
-                  data: content),
-              ),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4.0, right: 0),
+            child: SingleChildScrollView(
+              child: Html(
+                onLinkTap: (url) async {
+                  print('Link tapped: $url');
+                  notificationService.setStatusMessage(url, timeout: 5);
+                  await canLaunch(url) ? await launch(url) : notificationService.setStatusMessage('Cannot launch $url', timeout: 5);
+                },
+                onImageTap: (url) {
+                  print('Image tapped: $url');
+                },
+                onImageError: (Object exception, StackTrace stackTrace) {
+                  print('Image error');
+                },
+                data: content),
             ),
           ),
         ),

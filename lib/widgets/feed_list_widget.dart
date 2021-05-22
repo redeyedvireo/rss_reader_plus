@@ -75,19 +75,14 @@ class _FeedListWidgetState extends State<FeedListWidget> {
       decoration: BoxDecoration(
         border: Border(right: BorderSide(color: Theme.of(context).dividerColor))
             ),
-      child: Scrollbar(
-        isAlwaysShown: true,
-        thickness: 12.0,
-        controller: _controller,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 15.0),
-          child: ListView.builder(
-            itemCount: feeds.length,
-            controller: _controller,
-            itemBuilder: (BuildContext context, int index) {
-              return _buildFeedRow(context, feeds[index], feedService, notificationService);
-            },
-          ),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 0),
+        child: ListView.builder(
+          itemCount: feeds.length,
+          controller: _controller,
+          itemBuilder: (BuildContext context, int index) {
+            return _buildFeedRow(context, feeds[index], feedService, notificationService);
+          },
         ),
       ),
     );
