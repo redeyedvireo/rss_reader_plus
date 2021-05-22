@@ -66,7 +66,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ElevatedButton(onPressed: () async {
             _addFeed(context, feedService, notificationService);
           }, child: Text('Add Feed')),
-          ElevatedButton(onPressed: _updateFeeds, child: Text('Update Feeds')),
+          ElevatedButton(onPressed: () {
+            _updateFeeds(feedService);
+          }, child: Text('Update Feeds')),
           ElevatedButton(onPressed: _purgeOldNews, child: Text('Purge Old News')),
           ElevatedButton(onPressed: _manageGlobalFilters, child: Text('Manage Global Filters')),
           ElevatedButton(onPressed: _editLanguageFilter, child: Text('Edit Language Filter')),
@@ -140,8 +142,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _updateFeeds() {
-    print('Update Feeds tapped');
+  void _updateFeeds(FeedService feedService) async {
+    await feedService.updateFeeds();
   }
 
   void _purgeOldNews() {

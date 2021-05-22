@@ -61,7 +61,6 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
                     break;
 
                   case FeedMenuAction.Delete:
-                    // TODO: Show a confirmation dialog
                     final okToDelete = await showOkCancelDialog(context,
                     'Delete Feed?',
                     'Delete ${widget.feedService.selectedFeed.name}',

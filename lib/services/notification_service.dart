@@ -18,6 +18,10 @@ class NotificationService {
   /// @param message Message to appear
   /// @param timeout Number of seconds until the message disappears (set to 0 for no timeout)
   void setStatusMessage(String message, {int timeout = 10}) {
+    if (messageTimer != null && messageTimer.isActive) {
+      messageTimer.cancel();
+    }
+
     _statusMessage = message;
     statusBarNotification$.add(message);
 

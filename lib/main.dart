@@ -15,10 +15,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(providers: [
+      Provider<NotificationService>(create: (context) => NotificationService()),
       Provider<FeedDatabase>(create: (context) => FeedDatabase()),
       Provider<FeedService>(create: (context) => FeedService(context)),
       Provider<AppState>(create: (context) => AppState()),
-      Provider<NotificationService>(create: (context) => NotificationService()),
     ],
     child: MaterialApp(
       title: 'RssReader Plus',

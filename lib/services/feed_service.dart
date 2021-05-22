@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/parser/feed_identifier.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
+import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rxdart/rxdart.dart';
 import '../models/feed.dart';
 import 'feed_database.dart';
@@ -12,6 +13,7 @@ import 'feed_database.dart';
 
 class FeedService {
   FeedDatabase db;
+  NotificationService _notificationService;
   List<Feed> _feeds;                  // TODO: Make this a map
   Map<String, FeedItem> _feedItems;
   int _selectedFeedId;
@@ -26,6 +28,7 @@ class FeedService {
 
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
+    _notificationService = Provider.of<NotificationService>(context, listen: false);
     _feeds = [];
     _feedItems = {};
     _selectedFeedId = 0;
@@ -135,6 +138,18 @@ class FeedService {
     }
   }
 
+  /// Updates all feeds.
+  Future<void> updateFeeds() async {
+    for (var i = 0; i < _feeds.length; i++) {
+      final feed = _feeds[i];
+
+      _notificationService.setStatusMessage('Updating ${feed.name}...');
+      await fetchFeed(feed.id);      
+    }
+
+    _notificationService.setStatusMessage('Feeds updated.');
+  }
+
   /// Fetch feed from the internet.
   /// @param feedId - ID of feed in the database
   Future<void> fetchFeed(int feedId) async {
@@ -225,7 +240,7 @@ class FeedService {
         final newFeedId = _feeds.first.id;
         selectFeed(newFeedId);
       }
-      
+
       feedsUpdated$.add(_selectedFeedId);
     } catch (e) {
       print('[deleteFeed] ${e.message}');
