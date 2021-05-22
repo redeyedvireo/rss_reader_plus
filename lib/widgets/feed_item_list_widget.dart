@@ -96,7 +96,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
           onTap: () async {
             print("Tapped on feed item ${feedItem.guid}");
             widget.feedService.selectFeedItem(feedItem.guid);
-            await widget.feedService.setFeedItemReadFlag(feedItem.guid, true);
+            await widget.feedService.setFeedItemReadFlag(feedItem.guid, feedItem.parentFeedId, true);
             _previousScrollPosition = _controller.position.pixels;
             setState(() {
               _feedItems[index].read = true;

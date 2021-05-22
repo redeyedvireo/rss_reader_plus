@@ -12,6 +12,8 @@ import 'feed_database.dart';
 
 
 class FeedService {
+  static const ItemsOfInterestFeedId = -1;
+
   FeedDatabase db;
   NotificationService _notificationService;
   List<Feed> _feeds;                  // TODO: Make this a map
@@ -75,6 +77,13 @@ class FeedService {
     if (_feeds.length == 0) {
       try {
         _feeds = await db.readFeeds();
+
+        // Prepend Item of Interest feed
+        final ioiFeed = Feed(id: ItemsOfInterestFeedId,
+                              name: 'Items of Interest',
+                              title: 'Items of Interest',
+                              description: 'Items of Interest');
+        _feeds.insert(0, ioiFeed);
       } catch (e) {
         print('[getFeeds] ${e.message}');
       }
@@ -92,9 +101,26 @@ class FeedService {
 
   Future<List<FeedItem>> getFeedItems() async {
     if (!_feedItemsLoaded) {
-      if (_selectedFeedId > 0) {
-      _feedItems = await db.readFeedItems(_selectedFeedId);
-      _feedItemsLoaded = true;
+      if (_selectedFeedId == ItemsOfInterestFeedId) {
+        final itemsOfInterest = await db.readItemsOfInterest();
+
+        _feedItems = {};
+        for (var i = 0; i < itemsOfInterest.length; i++) {
+          final itemOfInterest = itemsOfInterest[i];
+          try {
+            final feedItem = await db.readFeedItem(itemOfInterest.feedId, itemOfInterest.guid);
+            _feedItems[feedItem.guid] = feedItem;            
+          } catch (e) {
+            print('[getFeedItems] Item of Interest error: ${e.message}');
+          }
+        }
+
+        _feedItemsLoaded = true;
+      } else {
+        if (_selectedFeedId > 0) {
+          _feedItems = await db.readFeedItems(_selectedFeedId);
+          _feedItemsLoaded = true;
+        }
       }
     }
 
@@ -124,14 +150,14 @@ class FeedService {
   }
 
   /// Sets the read flag for the given feed item
-  Future<void> setFeedItemReadFlag(String feedItemId, bool read) async {
-    final count = await db.setFeedItemReadFlag(feedItemId, _selectedFeedId, read);
+  Future<void> setFeedItemReadFlag(String feedItemId, int feedId, bool read) async {
+    final count = await db.setFeedItemReadFlag(feedItemId, feedId, read);
 
     if (count > 0) {
       final feedItem = _feedItems[feedItemId];
       feedItem.read = read;
 
-      final newUnreadCount = await numberOfUnreadFeedItems(_selectedFeedId);
+      final newUnreadCount = await numberOfUnreadFeedItems(feedId);
       feedUnreadCountChanged$.add(newUnreadCount);
     } else {
       print('[FeedService.setFeedItemReadFlag] Did not update feed item');
@@ -184,7 +210,26 @@ class FeedService {
 
   /// Returns the number of unread feed items for the given feed.
   Future<int> numberOfUnreadFeedItems(int feedId) async {
-    return db.getNumberOfUnreadFeedItems(feedId);
+    if (feedId == ItemsOfInterestFeedId) {
+      final itemsOfInterest = await db.readItemsOfInterest();
+      int unreadCount = 0;
+
+      for (var i = 0; i < itemsOfInterest.length; i++) {
+        final itemOfInterest = itemsOfInterest[i];
+        try {
+          final isRead = await db.isFeedItemRead(itemOfInterest.feedId, itemOfInterest.guid);
+          if (!isRead) {
+            unreadCount++;
+          }
+        } catch (e) {
+          print('[numberOfUnreadFeedItems] Item of Interest error: ${e.message}');
+        }
+      }
+
+      return unreadCount;
+    } else {
+      return await db.getNumberOfUnreadFeedItems(feedId);
+    }
   }
 
   /// Note - this may throw an exception

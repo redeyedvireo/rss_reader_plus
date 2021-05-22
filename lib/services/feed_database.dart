@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/models/item_of_interest.dart';
 import 'package:rss_reader_plus/util/utils.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -15,6 +16,7 @@ class FeedDatabase {
   Database sqlfliteDb;
 
   static final feedsTable = 'feeds';
+  static final itemsOfInterestTable = 'itemsofinterest';
 
   FeedDatabase();
 
@@ -160,29 +162,7 @@ class FeedDatabase {
       final feedItemMapList = await sqlfliteDb.rawQuery('select * from $tableName');
 
       for (final feedItemMap in feedItemMapList) {
-        int timestampRaw = feedItemMap['pubdatetime'];
-        int timestamp = timestampRaw * 1000;
-
-        final feedItem = FeedItem(
-          title: feedItemMap['title'],
-          author: feedItemMap['author'],
-          link: feedItemMap['link'],
-          description: feedItemMap['description'],
-          encodedContent: feedItemMap['contentencoded'],
-          categories: _splitCategories(feedItemMap['categories']),
-          publicationDatetime: DateTime.fromMillisecondsSinceEpoch(timestamp),
-          thumbnailLink: feedItemMap['thumbnaillink'],
-          thumbnailWidth: feedItemMap['thumbnailwidth'],
-          thumbnailHeight: feedItemMap['thumnailheight'],
-          guid: feedItemMap['guid'],
-          feedburnerOrigLink: feedItemMap['feedburneroriglink'],
-          enclosureLink: feedItemMap['enclosurelink'],
-          enclosureLength: feedItemMap['enclosurelength'],
-          enclosureType: feedItemMap['enclosuretype'],
-          parentFeedId: -1,
-          read: feedItemMap['readflag'] == 1 ? true : false
-        );
-
+        final feedItem = feedItemFromDbResult(feedItemMap, feedId);
         feedItems[feedItem.guid] = feedItem;
       }
     } catch (e) {
@@ -190,6 +170,42 @@ class FeedDatabase {
     }
 
     return feedItems;
+  }
+
+  /// Reads a single feed item.
+  Future<FeedItem> readFeedItem(int feedId, String guid) async {
+    String tableName = feedIdToString(feedId);
+
+    final queryResult = await sqlfliteDb.query(tableName,
+                                               where: 'guid = ?',
+                                               whereArgs: [guid]);
+
+    return feedItemFromDbResult(queryResult.first, feedId);
+  }
+
+  FeedItem feedItemFromDbResult(dynamic dbResult, int feedId) {
+    int timestampRaw = dbResult['pubdatetime'];
+    int timestamp = timestampRaw * 1000;
+
+    return FeedItem(
+      title: dbResult['title'],
+      author: dbResult['author'],
+      link: dbResult['link'],
+      description: dbResult['description'],
+      encodedContent: dbResult['contentencoded'],
+      categories: _splitCategories(dbResult['categories']),
+      publicationDatetime: DateTime.fromMillisecondsSinceEpoch(timestamp),
+      thumbnailLink: dbResult['thumbnaillink'],
+      thumbnailWidth: dbResult['thumbnailwidth'],
+      thumbnailHeight: dbResult['thumnailheight'],
+      guid: dbResult['guid'],
+      feedburnerOrigLink: dbResult['feedburneroriglink'],
+      enclosureLink: dbResult['enclosurelink'],
+      enclosureLength: dbResult['enclosurelength'],
+      enclosureType: dbResult['enclosuretype'],
+      parentFeedId: feedId,
+      read: dbResult['readflag'] == 1 ? true : false
+    );
   }
 
   /// Reads the guids of all feed items for the given feed.
@@ -203,6 +219,22 @@ class FeedDatabase {
     });
 
     return guids;
+  }
+
+  Future<List<ItemOfInterest>> readItemsOfInterest() async {
+    final queryResult = await sqlfliteDb.query(itemsOfInterestTable,
+                                                columns: ['feedid', 'guid']);
+
+    if (queryResult.isNotEmpty) {
+      List<ItemOfInterest> itemsOfInterest = [];
+
+      queryResult.forEach((row) {
+        itemsOfInterest.add(ItemOfInterest(row['feedid'], row['guid']));
+      });
+      return itemsOfInterest;
+    } else {
+      return [];
+    }
   }
 
   List<String> _splitCategories(String categoryString) {
@@ -260,6 +292,21 @@ class FeedDatabase {
     }
 
     return count;
+  }
+
+  Future<bool> isFeedItemRead(int feedId, String guid) async {
+    final tableName = feedIdToString(feedId);
+
+    final queryResult = await sqlfliteDb.query(tableName,
+                                               columns: ['readflag'],
+                                               where: 'guid = ?',
+                                               whereArgs: [guid]);
+
+    if (queryResult.isNotEmpty) {
+      return queryResult.first['readflag'] == 1;
+    } else {
+      return false;
+    }
   }
 
   /// Note: this may throw an exception
