@@ -23,8 +23,9 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
     super.initState();
 
     widget.feedService.feedSelected$.listen((feedId) {
-      setState(() {
-      });
+      if (mounted) {
+        setState(() { });
+      }
     });
   }
   @override

@@ -25,8 +25,9 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
     _feedItems = [];
 
     widget.feedService.feedSelected$.listen((feedId) {
-      setState(() {
-      });
+      if (mounted) {
+        setState(() { });
+      }
     });
 
     widget.feedService.feedUpdated$.listen((feedId) {

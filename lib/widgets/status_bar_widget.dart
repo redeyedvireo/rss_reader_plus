@@ -18,9 +18,11 @@ class _StatusBarWidgetState extends State<StatusBarWidget> {
     super.initState();
     
     widget.notificationService.statusBarNotification$.listen((newMessage) {
-      setState(() {
-        _currentMessage = newMessage;
-      });
+      if (mounted) {
+        setState(() {
+          _currentMessage = newMessage;
+        });
+      }
     });
   }
 
