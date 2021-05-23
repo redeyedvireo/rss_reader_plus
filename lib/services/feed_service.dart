@@ -129,13 +129,22 @@ class FeedService {
     return feedItemList;
   }
 
-  Widget getFeedIconWidget(int feedId) {
+  Widget getFeedIconWidget(int feedId, {bool makeSquare = false}) {
     final feed = _findFeed(feedId);
     if (feed.favicon != null) {
-      return Image.memory(
-        feed.favicon,
-        height: 20.0,
-      );
+      if (makeSquare) {
+        return Image.memory(
+          feed.favicon,
+          height: 20.0,
+          width: 20.0,
+          fit: BoxFit.fitHeight
+        );
+      } else {
+        return Image.memory(
+          feed.favicon,
+          height: 20.0
+        );
+      }
     } else {
       return Icon(Icons.rss_feed_rounded);
     }
