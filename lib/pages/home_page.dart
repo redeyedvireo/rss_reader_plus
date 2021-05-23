@@ -74,10 +74,10 @@ class _MyHomePageState extends State<MyHomePage> {
             await _updateFeeds(feedService);
           }, icon: Icon(Icons.refresh),),
           PopupMenuButton<ConfigAction>(
-            onSelected: (ConfigAction action) {
+            onSelected: (ConfigAction action) async {
               switch (action) {
                 case ConfigAction.ManageGlobalFilters:
-                  _manageGlobalFilters();
+                  await _manageGlobalFilters();
                   break;
 
                 case ConfigAction.EditLanguageFilter:
@@ -174,8 +174,8 @@ class _MyHomePageState extends State<MyHomePage> {
     print('Purge Old News tapped');
   }
 
-  void _manageGlobalFilters() {
-    print('Manage Global Filters tapped');
+  Future<void> _manageGlobalFilters() async {
+    await Navigator.pushNamed(context, 'globalfilters');
   }
 
   void _editLanguageFilter() {
