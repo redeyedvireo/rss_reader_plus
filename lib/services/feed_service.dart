@@ -33,7 +33,7 @@ class FeedService {
     _notificationService = Provider.of<NotificationService>(context, listen: false);
     _feeds = [];
     _feedItems = {};
-    _selectedFeedId = 0;
+    _selectedFeedId = ItemsOfInterestFeedId;
     _selectedFeedItem = '';
     _feedItemsLoaded = false;
   }
