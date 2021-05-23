@@ -169,8 +169,10 @@ class FeedService {
     for (var i = 0; i < _feeds.length; i++) {
       final feed = _feeds[i];
 
-      _notificationService.setStatusMessage('Updating ${feed.name}...');
-      await fetchFeed(feed.id);      
+      if (feed.id > 0) {
+        _notificationService.setStatusMessage('Updating ${feed.name}...');
+        await fetchFeed(feed.id);
+      }
     }
 
     _notificationService.setStatusMessage('Feeds updated.');
