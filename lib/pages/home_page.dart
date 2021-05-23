@@ -10,9 +10,12 @@ import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
 import '../services/feed_service.dart';
 
+enum ConfigAction { ManageGlobalFilters, EditLanguageFilter, EditAdFilter, EditPreferences }
+
 // Pane size constraints
 const feedPaneWidth = 250.0;
 const feedItemPaneHeight = 300.0;
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
 
@@ -64,16 +67,39 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text('RssReader Plus'),
         actions: [
           ElevatedButton(onPressed: () async {
-            _addFeed(context, feedService, notificationService);
+            await _addFeed(context, feedService, notificationService);
           }, child: Text('Add Feed')),
-          ElevatedButton(onPressed: () {
-            _updateFeeds(feedService);
-          }, child: Text('Update Feeds')),
           ElevatedButton(onPressed: _purgeOldNews, child: Text('Purge Old News')),
-          ElevatedButton(onPressed: _manageGlobalFilters, child: Text('Manage Global Filters')),
-          ElevatedButton(onPressed: _editLanguageFilter, child: Text('Edit Language Filter')),
-          ElevatedButton(onPressed: _editAdFilter, child: Text('Edit Ad Filter')),
-          ElevatedButton(onPressed: _preferences, child: Text('Preferences')),
+          IconButton(onPressed: () async {
+            await _updateFeeds(feedService);
+          }, icon: Icon(Icons.refresh),),
+          PopupMenuButton<ConfigAction>(
+            onSelected: (ConfigAction action) {
+              switch (action) {
+                case ConfigAction.ManageGlobalFilters:
+                  _manageGlobalFilters();
+                  break;
+
+                case ConfigAction.EditLanguageFilter:
+                  _editLanguageFilter();
+                  break;
+
+                case ConfigAction.EditAdFilter:
+                  _editAdFilter();
+                  break;
+
+                case ConfigAction.EditPreferences:
+                  _preferences();
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<ConfigAction>>[
+              PopupMenuItem(value: ConfigAction.ManageGlobalFilters, child: Text('Manage Global Filters')),
+              PopupMenuItem(value: ConfigAction.EditLanguageFilter, child: Text('Edit Language Filter')),
+              PopupMenuItem(value: ConfigAction.EditAdFilter, child: Text('Edit Ad Filter')),
+              PopupMenuDivider(),
+              PopupMenuItem(value: ConfigAction.EditPreferences, child: Text('Preferences')),
+            ])
         ],
       ),
       body: Container(
@@ -116,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _addFeed(BuildContext context, FeedService feedService, NotificationService notificationService) async {
+  Future<void> _addFeed(BuildContext context, FeedService feedService, NotificationService notificationService) async {
     final url = await NewFeedDialog.showNewFeedDialog(context);
     if (url.isNotEmpty) {
       print('Feed URL: $url');
@@ -125,8 +151,6 @@ class _MyHomePageState extends State<MyHomePage> {
         final feedId = await feedService.newFeed(url);
 
         if (feedId > 0) {
-          // TODO: Consider popping up a dialog asking if the user would like to switch to the new feed.
-          //  (or, maybe just go ahead and switch to it.)
           final feed = feedService.getFeed(feedId);
           notificationService.setStatusMessage('Feed ${feed.title} added');
 
@@ -142,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _updateFeeds(FeedService feedService) async {
+  Future<void> _updateFeeds(FeedService feedService) async {
     await feedService.updateFeeds();
   }
 
