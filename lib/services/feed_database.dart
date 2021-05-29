@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/models/feed_item_filter.dart';
 import 'package:rss_reader_plus/models/item_of_interest.dart';
 import 'package:rss_reader_plus/util/utils.dart';
 import 'package:sqflite_common/sqlite_api.dart';
@@ -17,6 +18,7 @@ class FeedDatabase {
 
   static final feedsTable = 'feeds';
   static final itemsOfInterestTable = 'itemsofinterest';
+  static final feedItemFilterTable = 'feeditemfilters';
 
   FeedDatabase();
 
@@ -353,5 +355,30 @@ class FeedDatabase {
                                                    where: 'feedid = ?',
                                                    whereArgs: [feedId]);
     return numRowsRemoved > 0;
+  }
+
+  Future<List<FeedItemFilter>> readFeedItemFilters() async {
+    List<FeedItemFilter> feedItemFilters = [];
+
+    final queryResult = await sqlfliteDb.query(feedItemFilterTable,
+                                                columns: ['filterid',
+                                                          'feedid',
+                                                          'field',
+                                                          'verb',
+                                                          'querystring',
+                                                          'action']);
+    
+    queryResult.forEach((row) {
+      final feedItemFilter = FeedItemFilter(filterId: row['filterid'],
+                                            feedId: row['feedid'],
+                                            fieldId: FilterField.values[row['field']],
+                                            verb: FilterQuery.values[row['verb']],
+                                            queryStr: row['querystring'],
+                                            action: FilterAction.values[row['action']]);
+
+      feedItemFilters.add(feedItemFilter);
+    });
+
+    return feedItemFilters;
   }
 }
