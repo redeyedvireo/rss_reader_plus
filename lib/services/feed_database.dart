@@ -381,4 +381,31 @@ class FeedDatabase {
 
     return feedItemFilters;
   }
+
+  Future<int> updateFeedItemFilter(FeedItemFilter feedItemFilter) async {
+    return await sqlfliteDb.update(feedItemFilterTable, {
+      'field': feedItemFilter.fieldId.index,
+      'verb': feedItemFilter.verb.index,
+      'querystring': feedItemFilter.queryStr,
+      'action': feedItemFilter.action.index
+    },
+    where: 'filterid = ?',
+    whereArgs: [feedItemFilter.filterId]);
+  }
+
+  Future<int> deleteFeedItemFilter(FeedItemFilter feedItemFilter) async {
+    return await sqlfliteDb.delete(feedItemFilterTable,
+                                   where: 'filterid = ?',
+                                   whereArgs: [feedItemFilter.filterId]);
+  }
+
+  Future<int> createFeedItemFilter(FeedItemFilter feedItemFilter) async {
+    return await sqlfliteDb.insert(feedItemFilterTable, {
+      'feedid': feedItemFilter.feedId,
+      'field': feedItemFilter.fieldId.index,
+      'verb': feedItemFilter.verb.index,
+      'querystring': feedItemFilter.queryStr,
+      'action': feedItemFilter.action.index
+    });
+  }
 }

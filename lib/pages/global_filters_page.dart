@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item_filter.dart';
 import 'package:rss_reader_plus/services/filter_service.dart';
 
+import 'edit_global_filter_page.dart';
+
 class GlobalFiltersPage extends StatefulWidget {
   @override
   _GlobalFiltersPageState createState() => _GlobalFiltersPageState();
@@ -51,6 +53,32 @@ class _GlobalFiltersPageState extends State<GlobalFiltersPage> {
         title: Text('Global Filters'),
       ),
       body: _buildContent(context),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          FeedItemFilter feedItemFilter = FeedItemFilter(
+            feedId: 0,
+            fieldId: FilterField.TITLE,
+            verb: FilterQuery.CONTAINS,
+            queryStr: '',
+            action: FilterAction.COPY_TO_INTEREST_FEED
+          );
+
+          final result = await Navigator.push(context, MaterialPageRoute(
+          builder: (context) => EditGlobalFilterPage(feedItemFilter)));
+
+          if (result != null) {
+            final newFeedItemFilter = result as FeedItemFilter;
+            _filterService.createFeedItemFilter(newFeedItemFilter);
+
+            // Update _feedItemFilters
+            setState(() {
+              _feedItemFilters.add(newFeedItemFilter);
+            });
+          }
+        },
+        tooltip: 'Add new global filter',
+        child: Icon(Icons.add),
+      ),
     );
   }
 
@@ -80,18 +108,37 @@ class _GlobalFiltersPageState extends State<GlobalFiltersPage> {
     FeedItemFilter feedItemFilter = _feedItemFilters[index];
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      padding: EdgeInsets.symmetric(vertical: 0, horizontal: 8.0),
       child: Row(
         children: [
           Expanded(child: Text(_constructFilterString(feedItemFilter))),
           IconButton(
-            onPressed: () {
-              print('Editing filter ID ${feedItemFilter.filterId}');
+            onPressed: () async {
+              final result = await Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => EditGlobalFilterPage(feedItemFilter)));
+
+              if (result != null) {
+                final newFeedItemFilter = result as FeedItemFilter;
+                _filterService.updateFeedItemFilter(newFeedItemFilter);
+
+                // Update _feedItemFilters
+                setState(() {
+                  _feedItemFilters[index] = newFeedItemFilter;
+                });
+              }
             },
             icon: Icon(Icons.edit)),
           IconButton(
-            onPressed: () {
+            onPressed: () async {
               print('Deleting filter ID ${feedItemFilter.filterId}');
+              final success = await _filterService.deleteFeedItemFilter(feedItemFilter);
+              if (success) {
+                setState(() {
+                  _feedItemFilters.removeAt(index);
+                });
+              } else {
+                print('Deleting feed item filter ${feedItemFilter.filterId} unsuccessful');
+              }
             },
             icon: Icon(Icons.delete)
           )
