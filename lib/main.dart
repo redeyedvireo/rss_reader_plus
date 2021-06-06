@@ -19,9 +19,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(providers: [
       Provider<NotificationService>(create: (context) => NotificationService()),
       Provider<FeedDatabase>(create: (context) => FeedDatabase()),
+      Provider<FilterService>(create: (context) => FilterService(context)),
       Provider<FeedService>(create: (context) => FeedService(context)),
       Provider<AppState>(create: (context) => AppState()),
-      Provider<FilterService>(create: (context) => FilterService(context)),
     ],
     child: MaterialApp(
       title: 'RssReader Plus',

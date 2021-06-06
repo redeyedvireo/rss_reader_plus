@@ -1,3 +1,4 @@
+import 'feed_item.dart';
 
 enum FilterField {
   NONE,
@@ -30,6 +31,29 @@ class FeedItemFilter {
   String queryStr = '';                           // Query string(ie, string to search for , etc.)
   FilterAction action = FilterAction.DO_NOTHING;  // Action ID(ie, what to do with selected feed items)
 
+  final fieldStrings = {
+    FilterField.NONE: "<invalid filter>",
+    FilterField.TITLE: "title",
+    FilterField.AUTHOR: "author",
+    FilterField.DESCRIPTION: "description",
+    FilterField.CATEGORIES: "categories"
+  };
+
+  final filterQueries = {
+    FilterQuery.IGNORE: 'ignore',
+    FilterQuery.CONTAINS: 'contains',
+    FilterQuery.DOES_NOT_CONTAIN: 'does not contain',
+    FilterQuery.EQUALS: 'equals',
+    FilterQuery.REGULAR_EXPRESSION_MATCH: 'matches with regular expression'
+  };
+
+  final filterActions = {
+    FilterAction.DO_NOTHING: 'do nothing',
+    FilterAction.COPY_TO_INTEREST_FEED: 'mark it as an Item of Interest',
+    FilterAction.MARK_AS_READ: 'mark it as read',
+    FilterAction.DELETE: 'delete it'
+  };
+
   FeedItemFilter({
     this.filterId,
     this.feedId,
@@ -40,56 +64,83 @@ class FeedItemFilter {
   });
 
   String fieldString() {
-    switch (fieldId) {
-      case FilterField.NONE:
-        return "<invalid filter>";
-
-      case FilterField.TITLE:
-        return "title";
-
-      case FilterField.AUTHOR:
-        return "author";
-
-      case FilterField.DESCRIPTION:
-        return "description";
-
-      case FilterField.CATEGORIES:
-        return "categories";
-    }
+    return fieldStrings[fieldId];
   }
 
   String filterQuery() {
-    switch (verb) {
-      case FilterQuery.IGNORE:
-        return 'ignore';
-
-      case FilterQuery.CONTAINS:
-        return 'contains';
-
-      case FilterQuery.DOES_NOT_CONTAIN:
-        return 'does not contain';
-
-      case FilterQuery.EQUALS:
-        return 'equals';
-
-      case FilterQuery.REGULAR_EXPRESSION_MATCH:
-        return 'matches with regular expression';
-    }
+    return filterQueries[verb];
   }
 
   String filterAction() {
-    switch (action) {
-      case FilterAction.DO_NOTHING:
-        return 'do nothing';
+    return filterActions[action];
+  }
 
-      case FilterAction.COPY_TO_INTEREST_FEED:
-        return 'mark it as an Item of Interest';
+  /// Returns true if the given feedItem would be selected by this filter.
+  bool isSelected(FeedItem feedItem) {
+    String subject = '';
+    bool categoriesIsSubject = false;
 
-      case FilterAction.MARK_AS_READ:
-        return 'mark it as read';
+    switch (fieldId) {
+      case FilterField.NONE:
+        return false;
 
-      case FilterAction.DELETE:
-        return 'delete it';
+      case FilterField.AUTHOR:
+        subject = feedItem.author;
+        break;
+
+      case FilterField.TITLE:
+        subject = feedItem.title;
+        break;
+
+      case FilterField.DESCRIPTION:
+        subject = feedItem.description;
+        break;
+
+      case FilterField.CATEGORIES:
+        categoriesIsSubject = true;
+        break;
     }
+
+    switch (verb) {
+      case FilterQuery.IGNORE:
+        return false;
+
+      case FilterQuery.CONTAINS:
+        if (categoriesIsSubject) {
+          return feedItem.categories.contains(queryStr);
+        } else {
+          return subject.contains(queryStr);
+        }
+        break;
+
+      case FilterQuery.DOES_NOT_CONTAIN:
+        if (categoriesIsSubject) {
+          return !feedItem.categories.contains(queryStr);
+        } else {
+          return !subject.contains(queryStr);
+        }
+        break;
+
+      case FilterQuery.EQUALS:
+        if (categoriesIsSubject) {
+          return feedItem.categories.join(',') == queryStr;   // TODO: Maybe sort first, and do case-insensitive comparison
+        } else {
+          return subject == queryStr;   // TODO: Use equalsIgnoreAsciiCase(subject, queryStr);  (Need to install flutter collection package)
+        }
+        break;
+
+      case FilterQuery.REGULAR_EXPRESSION_MATCH:
+        if (categoriesIsSubject) {
+          return false;
+        } else {
+          RegExp exp = RegExp(queryStr);
+          return exp.hasMatch(subject);
+        }
+        break;
+    }
+
+    // Should not get this far, but if it does, return false
+    print('[FeedItemFilter.isSelected] Query not handled.');
+    return false;
   }
 }

@@ -44,4 +44,15 @@ class FilterService {
 
     return numItemsCreated == 1;
   }
+
+  /// Runs the given feedItem through all the known filters.  If the feed item
+  /// is to be deleted, an invalid feedItem is returned.
+  FeedItem filterFeedItem(FeedItem feedItem) {
+    _feedItemFilters.forEach((filter) {
+      final filterIsApplicable = filter.isSelected(feedItem);
+      if (filterIsApplicable) {
+        print('FeedItem ${feedItem.title} is applicable to filter ${filter.filterId}');
+      }
+    });
+  }
 }

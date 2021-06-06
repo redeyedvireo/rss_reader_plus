@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/parser/feed_identifier.dart';
+import 'package:rss_reader_plus/services/filter_service.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rxdart/rxdart.dart';
@@ -16,6 +17,7 @@ class FeedService {
 
   FeedDatabase db;
   NotificationService _notificationService;
+  FilterService _filterService;
   List<Feed> _feeds;                  // TODO: Make this a map
   Map<String, FeedItem> _feedItems;
   int _selectedFeedId;
@@ -31,6 +33,7 @@ class FeedService {
   FeedService(BuildContext context) {
     db = Provider.of<FeedDatabase>(context, listen: false);
     _notificationService = Provider.of<NotificationService>(context, listen: false);
+    _filterService = Provider.of<FilterService>(context, listen: false);
     _feeds = [];
     _feedItems = {};
     _selectedFeedId = ItemsOfInterestFeedId;
@@ -203,6 +206,14 @@ class FeedService {
         final existingGuids = await db.readGuids(feedId);
 
         final newFeedItems = feedParser.getNewFeedItems(existingGuids);
+        List<FeedItem> filteredFeedItems = [];
+
+        // Perform filtering
+        newFeedItems.forEach((feedItem) {
+          // TODO: Need to populate filteredFeedItems with the return value
+          // TODO: But need to check for invalid feed items, which are feed items that are to be deleted by the filter.
+          _filterService.filterFeedItem(feedItem);
+        });
 
         // Store new feed items
         await db.writeFeedItems(feedId, newFeedItems);
