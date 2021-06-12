@@ -239,6 +239,20 @@ class FeedDatabase {
     }
   }
 
+  Future<bool> writeItemsOfInterest(List<ItemOfInterest> itemsOfInterest) async {
+    final batch = sqlfliteDb.batch();
+
+    for (var itemOfInterest in itemsOfInterest) {
+      batch.insert(itemsOfInterestTable, {
+        'feedid': itemOfInterest.feedId,
+        'guid': itemOfInterest.guid
+      });
+    }
+
+    final result = await batch.commit();
+    return result.isNotEmpty;     // TODO: To be more thorough, go check each item in the result
+  }
+
   List<String> _splitCategories(String categoryString) {
     return categoryString.split(',');
   }

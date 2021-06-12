@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
+import 'package:rss_reader_plus/models/item_of_interest.dart';
 import 'package:rss_reader_plus/parser/feed_identifier.dart';
 import 'package:rss_reader_plus/services/filter_service.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
@@ -206,21 +207,28 @@ class FeedService {
         final existingGuids = await db.readGuids(feedId);
 
         final newFeedItems = feedParser.getNewFeedItems(existingGuids);
-        List<FeedItem> filteredFeedItems = [];
 
         // Perform filtering
-        newFeedItems.forEach((feedItem) {
-          // TODO: Need to populate filteredFeedItems with the return value
-          // TODO: But need to check for invalid feed items, which are feed items that are to be deleted by the filter.
-          _filterService.filterFeedItem(feedItem);
-        });
+        final filteredFeedItems = _filterService.filterFeedItems(newFeedItems);
 
         // Store new feed items
-        await db.writeFeedItems(feedId, newFeedItems);
+        await db.writeFeedItems(feedId, filteredFeedItems);
 
         if (feedId == _selectedFeedId) {
           // Invalidate feed item cache
           _feedItemsLoaded = false;
+        }
+
+        // Copy desired feed items to the Items of Interest feed
+        final itemsOfInterestFeedItems = _filterService.findItemsOfInterest(filteredFeedItems);
+        final itemsOfInterest = itemsOfInterestFeedItems.map((feedItem) => ItemOfInterest.fromFeedItem(feedItem, feedId)).toList();
+
+        if (itemsOfInterest.length > 0) {
+          final result = await db.writeItemsOfInterest(itemsOfInterest);
+
+          if (!result) {
+            print('[FeedService.fetchFeed] Error writing items of interest');
+          }
         }
 
         feedUpdated$.add(feedId);

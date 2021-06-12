@@ -45,14 +45,44 @@ class FilterService {
     return numItemsCreated == 1;
   }
 
+  /// Filters the given list of feed items.
+  List<FeedItem> filterFeedItems(List<FeedItem> feedItems) {
+    return feedItems.map((feedItem) => _filterFeedItem(feedItem))
+                    .where((feedItem) => feedItem.isValid)
+                    .toList();
+  }
+
   /// Runs the given feedItem through all the known filters.  If the feed item
   /// is to be deleted, an invalid feedItem is returned.
-  FeedItem filterFeedItem(FeedItem feedItem) {
-    _feedItemFilters.forEach((filter) {
-      final filterIsApplicable = filter.isSelected(feedItem);
-      if (filterIsApplicable) {
-        print('FeedItem ${feedItem.title} is applicable to filter ${filter.filterId}');
-      }
-    });
+  FeedItem _filterFeedItem(FeedItem feedItem) {
+    FeedItem filteredFeedItem = feedItem;
+
+    for (var i = 0; i < _feedItemFilters.length && filteredFeedItem.isValid; i++) {
+      final filter = _feedItemFilters[i];
+
+      filteredFeedItem = filter.filterFeedItem(filteredFeedItem);
+    }
+
+    return filteredFeedItem;
+  }
+
+  /// Returns a list of feed items which should be copied to the Items of Interest feed.
+  List<FeedItem> findItemsOfInterest(List<FeedItem> feedItems) {
+    return feedItems.where((feedItem) => isItemOfInterest(feedItem)).toList();
+  }
+
+  bool isItemOfInterest(FeedItem feedItem) {
+    bool isIoI = false;
+    bool wouldBeDeleted = false;
+
+    for (var i = 0; i < _feedItemFilters.length && !wouldBeDeleted; i++) {
+      final filter = _feedItemFilters[i];
+
+      isIoI = isIoI || filter.isItemOfInterest(feedItem);
+      wouldBeDeleted = wouldBeDeleted || filter.wouldBeDeleted(feedItem);
+    }
+
+    // If the feed item would be deleted by any filter, return false
+    return isIoI && !wouldBeDeleted;
   }
 }

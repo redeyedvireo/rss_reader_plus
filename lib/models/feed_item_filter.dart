@@ -143,4 +143,40 @@ class FeedItemFilter {
     print('[FeedItemFilter.isSelected] Query not handled.');
     return false;
   }
+
+  /// Returns a filtered version of the given feed item.  If the filtering indicates
+  /// that the feed item should be deleted, an invalid feed item is returned.
+  FeedItem filterFeedItem(FeedItem feedItem) {
+    FeedItem resultantFeedItem = feedItem;
+
+    if (feedItem.isValid) {
+      if (isSelected(feedItem)) {
+        switch (action) {
+          case FilterAction.DELETE:
+            resultantFeedItem = FeedItem();
+            break;
+
+          case FilterAction.COPY_TO_INTEREST_FEED:
+          case FilterAction.DO_NOTHING:
+            break;
+
+          case FilterAction.MARK_AS_READ:
+            feedItem.read = true;
+            break;
+        }
+      }
+    }
+
+    return resultantFeedItem;
+  }
+
+  /// Returns true if this feed item should be copied to the Items of Interest feed.
+  bool isItemOfInterest(FeedItem feedItem) {
+    return feedItem.isValid && isSelected(feedItem) && action == FilterAction.COPY_TO_INTEREST_FEED;
+  }
+
+  /// Returns true if this feed item would be deleted
+  bool wouldBeDeleted(FeedItem feedItem) {
+    return feedItem.isValid && isSelected(feedItem) && action == FilterAction.DELETE;
+  }
 }
