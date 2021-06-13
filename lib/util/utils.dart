@@ -63,3 +63,13 @@ dynamic getFirstNonNull(List<dynamic> items) {
 
   return result;
 }
+
+/// Remove any non-number characters from the input string.
+String onlyNumbers(String inString) {
+  final resultList = inString.split('').where((character) => isDigit(character)).toList();
+  return resultList.join('');
+}
+
+bool isDigit(String character) {
+  return int.tryParse(character) != null;
+}

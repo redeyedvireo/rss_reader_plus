@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/dialogs/new_feed_dialog.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
+import 'package:rss_reader_plus/services/prefs_service.dart';
 import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
 import '../widgets/feed_list_widget.dart';
@@ -10,7 +11,7 @@ import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
 import '../services/feed_service.dart';
 
-enum ConfigAction { ManageGlobalFilters, EditLanguageFilter, EditAdFilter, EditPreferences }
+enum ConfigAction { ManageGlobalFilters, EditLanguageFilter, EditAdFilter }
 
 // Pane size constraints
 const feedPaneWidth = 250.0;
@@ -34,9 +35,10 @@ class _MyHomePageState extends State<MyHomePage> {
     FeedDatabase feedDb = Provider.of<FeedDatabase>(context, listen: false);
     FeedService _feedService = Provider.of<FeedService>(context);
     NotificationService _notificationService = Provider.of<NotificationService>(context);
+    PrefsService _prefsService = Provider.of<PrefsService>(context);
     
     return FutureBuilder(
-      future: _mainInit(feedDb),
+      future: _mainInit(feedDb, _prefsService),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -56,7 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<void> _mainInit(FeedDatabase feedDb) async {
+  Future<void> _mainInit(FeedDatabase feedDb, PrefsService prefsService) async {
+    prefsService.initPrefsService();
     final sqlfliteDb = await FeedDatabase.init();
     feedDb.setSqlfliteDb(sqlfliteDb);
   }
@@ -87,18 +90,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 case ConfigAction.EditAdFilter:
                   _editAdFilter();
                   break;
-
-                case ConfigAction.EditPreferences:
-                  _preferences();
-                  break;
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<ConfigAction>>[
               PopupMenuItem(value: ConfigAction.ManageGlobalFilters, child: Text('Manage Global Filters')),
               PopupMenuItem(value: ConfigAction.EditLanguageFilter, child: Text('Edit Language Filter')),
               PopupMenuItem(value: ConfigAction.EditAdFilter, child: Text('Edit Ad Filter')),
-              PopupMenuDivider(),
-              PopupMenuItem(value: ConfigAction.EditPreferences, child: Text('Preferences')),
             ])
         ],
       ),
@@ -139,7 +136,32 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+      drawer: _createDrawer(),
     );
+  }
+
+  Widget _createDrawer() {
+    return Drawer(child: ListView(
+      children: [
+        DrawerHeader(
+          decoration: BoxDecoration(
+            color: Colors.blue
+          ),
+          child: Text('RssReader Plus',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24),)),
+        ListTile(
+          leading: Icon(Icons.settings),
+          title: Text('Settings'),
+          onTap: () async {
+            print('Settings tapped');
+            Navigator.pop(context);
+            await _preferences();
+          },
+        )
+      ],
+    ),);
   }
 
   Future<void> _addFeed(BuildContext context, FeedService feedService, NotificationService notificationService) async {
@@ -186,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
     print('Edit Ad Filter tapped');
   }
 
-  void _preferences() {
-    print('Preferences tapped');
+  Future<void> _preferences() async {
+    await Navigator.pushNamed(context, 'preferences');
   }
 }
