@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/services/prefs_service.dart';
 import 'package:rss_reader_plus/services/update_service.dart';
-import 'package:rss_reader_plus/util/utils.dart';
 
 class PreferencesPage extends StatefulWidget {
   @override
