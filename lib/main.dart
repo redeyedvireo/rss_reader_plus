@@ -6,6 +6,7 @@ import 'package:rss_reader_plus/pages/preferences_page.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/filter_service.dart';
+import 'package:rss_reader_plus/services/initialization_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rss_reader_plus/services/prefs_service.dart';
 
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
       Provider<FilterService>(create: (context) => FilterService(context)),
       Provider<FeedService>(create: (context) => FeedService(context)),
       Provider<AppState>(create: (context) => AppState()),
+      Provider<InitializationService>(create: (context) => InitializationService(context)),
     ],
     child: MaterialApp(
       title: 'RssReader Plus',

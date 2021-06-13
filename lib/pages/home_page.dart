@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/dialogs/new_feed_dialog.dart';
-import 'package:rss_reader_plus/services/feed_database.dart';
+import 'package:rss_reader_plus/services/initialization_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
-import 'package:rss_reader_plus/services/prefs_service.dart';
 import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
 import '../widgets/feed_list_widget.dart';
@@ -32,13 +31,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    FeedDatabase feedDb = Provider.of<FeedDatabase>(context, listen: false);
+    InitializationService _initializationService = Provider.of<InitializationService>(context, listen: false);
     FeedService _feedService = Provider.of<FeedService>(context);
     NotificationService _notificationService = Provider.of<NotificationService>(context);
-    PrefsService _prefsService = Provider.of<PrefsService>(context);
     
     return FutureBuilder(
-      future: _mainInit(feedDb, _prefsService),
+      future: _mainInit(_initializationService),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -58,10 +56,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<void> _mainInit(FeedDatabase feedDb, PrefsService prefsService) async {
-    prefsService.initPrefsService();
-    final sqlfliteDb = await FeedDatabase.init();
-    feedDb.setSqlfliteDb(sqlfliteDb);
+  Future<void> _mainInit(InitializationService initializationService) async {
+    await initializationService.initialize();
   }
 
   Widget _buildAll(BuildContext context, FeedService feedService, NotificationService notificationService) {
