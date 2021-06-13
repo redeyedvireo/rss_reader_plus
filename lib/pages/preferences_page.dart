@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/services/prefs_service.dart';
+import 'package:rss_reader_plus/services/update_service.dart';
 import 'package:rss_reader_plus/util/utils.dart';
 
 class PreferencesPage extends StatefulWidget {
@@ -24,6 +25,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
   @override
   Widget build(BuildContext context) {
     PrefsService _prefsService = Provider.of<PrefsService>(context);
+    UpdateService _updateService = Provider.of<UpdateService>(context);
     
     if (!_initialized) {
       _initialized = true;
@@ -31,18 +33,16 @@ class _PreferencesPageState extends State<PreferencesPage> {
       _updateTimeController.text = updateRate.toString();
     }
 
-
-    return _buildAll(context, _prefsService);
+    return _buildAll(context, _prefsService, _updateService);
   }
 
-  Widget _buildAll(BuildContext context, PrefsService prefsService) {
+  Widget _buildAll(BuildContext context, PrefsService prefsService, UpdateService updateService) {
     return WillPopScope(
       onWillPop: () async {
-        print('Back button pressed.  Saving preferences...');
         final validForm = _formKey.currentState.validate();
 
         if (validForm) {
-          await savePrefs(prefsService);
+          await savePrefs(prefsService, updateService);
         }
 
         return validForm;     // If invalid, won't pop scope
@@ -56,9 +56,10 @@ class _PreferencesPageState extends State<PreferencesPage> {
     );
   }
 
-  Future<void> savePrefs(PrefsService prefsService) async {
+  Future<void> savePrefs(PrefsService prefsService, UpdateService updateService) async {
     final updateRate = int.parse(_updateTimeController.text);
-    prefsService.setFeedUpdateRate(updateRate);
+    await prefsService.setFeedUpdateRate(updateRate);
+    updateService.setUpdateRate(updateRate);
   }
 
   Widget _buildContent(BuildContext context) {
