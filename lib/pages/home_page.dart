@@ -10,7 +10,7 @@ import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
 import '../services/feed_service.dart';
 
-enum ConfigAction { ManageGlobalFilters, EditLanguageFilter, EditAdFilter }
+enum ConfigAction { ManageGlobalFilters, EditAdFilter }
 
 // Pane size constraints
 const feedPaneWidth = 250.0;
@@ -79,10 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   await _manageGlobalFilters();
                   break;
 
-                case ConfigAction.EditLanguageFilter:
-                  _editLanguageFilter();
-                  break;
-
                 case ConfigAction.EditAdFilter:
                   _editAdFilter();
                   break;
@@ -90,7 +86,6 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<ConfigAction>>[
               PopupMenuItem(value: ConfigAction.ManageGlobalFilters, child: Text('Manage Global Filters')),
-              PopupMenuItem(value: ConfigAction.EditLanguageFilter, child: Text('Edit Language Filter')),
               PopupMenuItem(value: ConfigAction.EditAdFilter, child: Text('Edit Ad Filter')),
             ])
         ],
@@ -149,9 +144,16 @@ class _MyHomePageState extends State<MyHomePage> {
             fontSize: 24),)),
         ListTile(
           leading: Icon(Icons.settings),
+          title: Text('Edit Language Filters'),
+          onTap: () async {
+            Navigator.pop(context);
+            await _editLanguageFilter();
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.settings),
           title: Text('Settings'),
           onTap: () async {
-            print('Settings tapped');
             Navigator.pop(context);
             await _preferences();
           },
@@ -196,8 +198,8 @@ class _MyHomePageState extends State<MyHomePage> {
     await Navigator.pushNamed(context, 'globalfilters');
   }
 
-  void _editLanguageFilter() {
-    print('Edit Language Filter tapped');
+  Future<void> _editLanguageFilter() async {
+    await Navigator.pushNamed(context, 'languagefilters');
   }
 
   void _editAdFilter() {
