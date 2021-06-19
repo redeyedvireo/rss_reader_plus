@@ -19,6 +19,7 @@ class FeedDatabase {
   static final feedsTable = 'feeds';
   static final itemsOfInterestTable = 'itemsofinterest';
   static final feedItemFilterTable = 'feeditemfilters';
+  static final filteredWordsTable = 'filteredwords';
 
   FeedDatabase();
 
@@ -421,5 +422,29 @@ class FeedDatabase {
       'querystring': feedItemFilter.queryStr,
       'action': feedItemFilter.action.index
     });
+  }
+  
+  Future<List<String>> readLanguageFilters() async {
+    List<String> filters = [];
+
+    final queryResult = await sqlfliteDb.query(filteredWordsTable, columns: [ 'word' ]);
+
+    queryResult.forEach((row) {
+      filters.add(row['word']);
+    });
+
+    return filters;
+  }
+
+  Future<int> addLanguageFilter(String filteredWord) async {
+    return await sqlfliteDb.insert(filteredWordsTable, {
+      'word': filteredWord
+    });
+  }
+
+  Future<int> deleteLanguageFilter(String filteredWord) async {
+    return await sqlfliteDb.delete(filteredWordsTable,
+                                                 where: 'word = ?',
+                                                 whereArgs: [filteredWord]);
   }
 }

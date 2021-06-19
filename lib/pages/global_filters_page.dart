@@ -17,7 +17,7 @@ class _GlobalFiltersPageState extends State<GlobalFiltersPage> {
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
 
-@override
+  @override
   void initState() {
     super.initState();
     _feedItemFilters = [];
@@ -25,7 +25,7 @@ class _GlobalFiltersPageState extends State<GlobalFiltersPage> {
 
   @override
   Widget build(BuildContext context) {
-    _filterService = Provider.of<FilterService>(context);
+    _filterService = Provider.of<FilterService>(context, listen: false);
 
     return FutureBuilder(
       future: _getFeedItemFilters(_filterService),
