@@ -72,22 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(onPressed: () async {
             await _updateFeeds(feedService);
           }, icon: Icon(Icons.refresh),),
-          PopupMenuButton<ConfigAction>(
-            onSelected: (ConfigAction action) async {
-              switch (action) {
-                case ConfigAction.ManageGlobalFilters:
-                  await _manageGlobalFilters();
-                  break;
-
-                case ConfigAction.EditAdFilter:
-                  _editAdFilter();
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<ConfigAction>>[
-              PopupMenuItem(value: ConfigAction.ManageGlobalFilters, child: Text('Manage Global Filters')),
-              PopupMenuItem(value: ConfigAction.EditAdFilter, child: Text('Edit Ad Filter')),
-            ])
         ],
       ),
       body: Container(
@@ -144,12 +128,29 @@ class _MyHomePageState extends State<MyHomePage> {
             fontSize: 24),)),
         ListTile(
           leading: Icon(Icons.settings),
+          title: Text('Manage Global Filters'),
+          onTap: () async {
+            Navigator.pop(context);
+            await _manageGlobalFilters();
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.settings),
           title: Text('Edit Language Filters'),
           onTap: () async {
             Navigator.pop(context);
             await _editLanguageFilter();
           },
         ),
+        ListTile(
+          leading: Icon(Icons.settings),
+          title: Text('Edit Ad Filters'),
+          onTap: () async {
+            Navigator.pop(context);
+            await _editAdFilter();
+          },
+        ),
+        Divider(),
         ListTile(
           leading: Icon(Icons.settings),
           title: Text('Settings'),
@@ -202,7 +203,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await Navigator.pushNamed(context, 'languagefilters');
   }
 
-  void _editAdFilter() {
+  Future<void> _editAdFilter() async {
     print('Edit Ad Filter tapped');
   }
 
