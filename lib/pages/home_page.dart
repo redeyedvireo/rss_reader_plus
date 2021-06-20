@@ -204,7 +204,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _editAdFilter() async {
-    print('Edit Ad Filter tapped');
+    await Navigator.pushNamed(context, 'adfilters');
   }
 
   Future<void> _preferences() async {
