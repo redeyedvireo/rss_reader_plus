@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/services/ad_filter_service.dart';
 import 'package:rss_reader_plus/widgets/string_list_edit_widget.dart';
 
 class AdFiltersPage extends StatefulWidget {
@@ -15,10 +17,13 @@ class AdFiltersPage extends StatefulWidget {
 }
 
 class _AdFiltersPageState extends State<AdFiltersPage> {
+  AdFilterService _adFilterService;
   List<String> _adFilters = [];
 
   @override
   Widget build(BuildContext context) {
+    _adFilterService = Provider.of<AdFilterService>(context, listen: false);
+    
     return FutureBuilder(
       future: _getAdFilters(),
       builder:(BuildContext context, AsyncSnapshot snapshot) {
@@ -38,7 +43,7 @@ class _AdFiltersPageState extends State<AdFiltersPage> {
   }
 
   Future<void> _getAdFilters() async {
-    return;
+    _adFilters = await _adFilterService.getAdFilters();
   }
 
   Widget _buildAll(BuildContext context) {
@@ -55,7 +60,7 @@ class _AdFiltersPageState extends State<AdFiltersPage> {
       child: Container(
         padding: EdgeInsets.only(top: 40.0, bottom: 60.0),
         child: SizedBox(
-          width: 300,
+          width: 900,
           child: StringListEditWidget(
             stringList: _adFilters,
             textEditHint: 'Enter new ad URL',
@@ -68,23 +73,21 @@ class _AdFiltersPageState extends State<AdFiltersPage> {
   }
 
   Future<bool> onDelete(String wordToDelete) async {
-    // final success = await _languageFilterService.deleteFilteredWord(wordToDelete);
-    // if (!success) {
-    //   widget._logger.severe('Deleting filtered word $wordToDelete unsuccessful');
-    // }
+    final success = await _adFilterService.deleteAdFilter(wordToDelete);
+    if (!success) {
+      widget._logger.severe('Deleting ad filter $wordToDelete unsuccessful');
+    }
 
-    // return success;
-    return true;
+    return success;
   }
 
   Future<bool> onAdd(String wordToAdd) async {
-    // final success = await _languageFilterService.addNewFilteredWord(wordToAdd);
+    final success = await _adFilterService.addNewAdFilter(wordToAdd);
 
-    // if (!success) {
-    //   widget._logger.severe('Adding filtered word $wordToAdd unsuccessful');
-    // }
+    if (!success) {
+      widget._logger.severe('Adding ad filter $wordToAdd unsuccessful');
+    }
 
-    // return success;          
-    return true;
+    return success;          
   }
 }

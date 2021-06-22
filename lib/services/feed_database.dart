@@ -20,6 +20,7 @@ class FeedDatabase {
   static final itemsOfInterestTable = 'itemsofinterest';
   static final feedItemFilterTable = 'feeditemfilters';
   static final filteredWordsTable = 'filteredwords';
+  static final adFiltersTable = 'adfilters';
 
   FeedDatabase();
 
@@ -446,5 +447,27 @@ class FeedDatabase {
     return await sqlfliteDb.delete(filteredWordsTable,
                                                  where: 'word = ?',
                                                  whereArgs: [filteredWord]);
+  }
+
+  Future<List<String>> readAdFilters() async {
+    List<String> filters = [];
+
+    final queryResult = await sqlfliteDb.query(adFiltersTable, columns: [ 'word' ]);
+
+    queryResult.forEach((row) {
+      filters.add(row['word']);
+    });
+
+    return filters;
+  }
+
+  Future<int> addAdFilter(String adFilter) async {
+    return await sqlfliteDb.insert(adFiltersTable, { 'word': adFilter });
+  }
+
+  Future<int> deleteAdFilter(String adFilter) async {
+    return await sqlfliteDb.delete(adFiltersTable,
+                                    where: 'word = ?',
+                                    whereArgs: [adFilter]);
   }
 }

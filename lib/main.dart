@@ -5,6 +5,7 @@ import 'package:rss_reader_plus/pages/edit_ad_filters_page.dart';
 import 'package:rss_reader_plus/pages/global_filters_page.dart';
 import 'package:rss_reader_plus/pages/language_filters_page.dart';
 import 'package:rss_reader_plus/pages/preferences_page.dart';
+import 'package:rss_reader_plus/services/ad_filter_service.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/filter_service.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
       Provider<FeedDatabase>(create: (context) => FeedDatabase()),
       Provider<FilterService>(create: (context) => FilterService(context)),
       Provider<LanguageFilterService>(create: (context) => LanguageFilterService(context)),
+      Provider<AdFilterService>(create: (context) => AdFilterService(context)),
       Provider<FeedService>(create: (context) => FeedService(context)),
       Provider<AppState>(create: (context) => AppState()),
       Provider<UpdateService>(create: (context) => UpdateService(context)),
