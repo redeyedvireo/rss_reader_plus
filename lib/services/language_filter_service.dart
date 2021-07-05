@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:html/dom.dart' as dom;
 import 'package:rss_reader_plus/services/feed_database.dart';
 
 class LanguageFilterService {
@@ -37,5 +38,46 @@ class LanguageFilterService {
   Future<bool> deleteFilteredWord(String filteredWord) async {
     final numDeletions = await _db.deleteLanguageFilter(filteredWord);
     return numDeletions >= 1;
+  }
+
+  dom.Document filterContent(dom.Document document) {
+    final documentParent = document.documentElement;
+    final childNodes = documentParent.nodes;
+    final firstChildNode = documentParent.firstChild;
+
+    processNodes(childNodes);
+  }
+
+  void processNodes(dom.NodeList nodes) {
+    for (final node in nodes) {
+      processNode(node);
+      
+      if (node.nodes.length > 0) {
+        processNodes(node.nodes);
+      }
+    }
+  }
+
+  void processNode(dom.Node node) {
+    if (node.nodeType == dom.Node.TEXT_NODE) {
+      final filteredString = performLanguageFilteringOnString(node.text);
+
+      node.text = filteredString;
+    }
+  }
+
+  String performLanguageFilteringOnString(String inString) {
+    String filteredString = inString;
+    for (String filteredWord in _filteredWords) {
+      // It would be great to use replaceAllMapped, but it chokes on strings that contain a single apostrophe.
+      // Hence, replaceAll must be used.
+
+      // filteredString = filteredString.replaceAllMapped(RegExp('(\\W)$filteredWord(\\W)', caseSensitive: false),
+      //                                                         (Match m) => '${m[1]}****${m[2]}');
+      
+      filteredString = filteredString.replaceAll(RegExp(filteredWord, caseSensitive: false), '****');
+    }
+
+    return filteredString;
   }
 }

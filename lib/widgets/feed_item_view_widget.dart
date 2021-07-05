@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:html/parser.dart' as htmlparser;
+import 'package:html/dom.dart' as dom;
 import 'package:clipboard/clipboard.dart';
+import 'package:rss_reader_plus/services/language_filter_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,6 +23,8 @@ class FeedItemViewWidget extends StatefulWidget {
 }
 
 class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
+  LanguageFilterService _languageFilterService;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +43,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
 
   @override
   Widget build(BuildContext context) {
+    _languageFilterService = Provider.of<LanguageFilterService>(context, listen: false);
     FeedItem feedItem = widget.feedService.selectedFeedItem;
 
     if (feedItem.isValid) {
@@ -52,28 +58,33 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
     String content;
 
     content = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.description;
+    dom.Document document = htmlparser.parse(content);
+
+    _languageFilterService.filterContent(document);
+
+    final feedItemTitle = _languageFilterService.performLanguageFilteringOnString(feedItem.title);
 
     return Column(
       children: [
-        Text(feedItem.title,
+        Text(feedItemTitle,
           style: TextStyle(fontSize: 24)),
         Flexible(
           child: Padding(
             padding: const EdgeInsets.only(top: 4.0, right: 0),
             child: SingleChildScrollView(
-              child: Html(
-                onLinkTap: (url) async {
+              child: Html.fromDom(
+                onLinkTap: (String url, RenderContext context, Map<String, String> attributes, dom.Element element) async {
                   print('Link tapped: $url');
                   notificationService.setStatusMessage(url, timeout: 5);
                   await canLaunch(url) ? await launch(url) : notificationService.setStatusMessage('Cannot launch $url', timeout: 5);
                 },
-                onImageTap: (url) {
+                onImageTap: (String url, RenderContext context, Map<String, String> attributes, dom.Element element) {
                   print('Image tapped: $url');
                 },
                 onImageError: (Object exception, StackTrace stackTrace) {
                   print('Image error');
                 },
-                data: content),
+                document: document),
             ),
           ),
         ),

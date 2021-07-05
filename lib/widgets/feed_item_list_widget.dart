@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
+import 'package:rss_reader_plus/services/language_filter_service.dart';
 import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
 
 class FeedItemListWidget extends StatefulWidget {
@@ -15,6 +17,7 @@ class FeedItemListWidget extends StatefulWidget {
 }
 
 class _FeedItemListWidgetState extends State<FeedItemListWidget> {
+  LanguageFilterService _languageFilterService;
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
   List<FeedItem> _feedItems;
@@ -41,6 +44,8 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
 
   @override
   Widget build(BuildContext context) {
+    _languageFilterService = Provider.of<LanguageFilterService>(context, listen: false);
+    
     return FutureBuilder(
       future: _getFeedItems(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -88,6 +93,9 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   }
 
   Widget _buildFeedItemRow(BuildContext context, int index, FeedItem feedItem, FeedService feedService) {
+    // Perform language filtering on the title
+    final filteredTitle = _languageFilterService.performLanguageFilteringOnString(feedItem.title);
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
       color: _backgroundColor(feedItem, feedService),
@@ -107,7 +115,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
             children: <Widget>[
               Expanded(
                 flex: 5,
-                child: _rowText(feedItem.title, feedItem, feedService),
+                child: _rowText(filteredTitle, feedItem, feedService),
               ),
               Expanded(
                 flex: 1,
