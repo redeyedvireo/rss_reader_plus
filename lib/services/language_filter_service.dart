@@ -40,7 +40,7 @@ class LanguageFilterService {
     return numDeletions >= 1;
   }
 
-  dom.Document filterContent(dom.Document document) {
+  void filterContent(dom.Document document) {
     final documentParent = document.documentElement;
     final childNodes = documentParent.nodes;
     final firstChildNode = documentParent.firstChild;

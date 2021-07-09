@@ -3,6 +3,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:html/parser.dart' as htmlparser;
 import 'package:html/dom.dart' as dom;
 import 'package:clipboard/clipboard.dart';
+import 'package:rss_reader_plus/services/ad_filter_service.dart';
 import 'package:rss_reader_plus/services/language_filter_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rxdart/rxdart.dart';
@@ -24,6 +25,7 @@ class FeedItemViewWidget extends StatefulWidget {
 
 class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   LanguageFilterService _languageFilterService;
+  AdFilterService _adFilterService;
 
   @override
   void initState() {
@@ -44,6 +46,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   @override
   Widget build(BuildContext context) {
     _languageFilterService = Provider.of<LanguageFilterService>(context, listen: false);
+    _adFilterService = Provider.of<AdFilterService>(context, listen: false);
     FeedItem feedItem = widget.feedService.selectedFeedItem;
 
     if (feedItem.isValid) {
@@ -61,6 +64,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
     dom.Document document = htmlparser.parse(content);
 
     _languageFilterService.filterContent(document);
+    _adFilterService.filterContent(document);
 
     final feedItemTitle = _languageFilterService.performLanguageFilteringOnString(feedItem.title);
 
