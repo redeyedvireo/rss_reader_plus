@@ -18,6 +18,10 @@ class LanguageFilterService {
     _filteredWordsLoaded = false;
   }
 
+  Future<void> init() async {
+    await getLanguageFilters();
+  }
+
   Future<List<String>> getLanguageFilters() async {
     if (!_filteredWordsLoaded) {
       try {

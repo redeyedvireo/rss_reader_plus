@@ -18,6 +18,10 @@ class AdFilterService {
     _filtersLoaded = false;
   }
 
+  Future<void> init() async {
+    await getAdFilters();
+  }
+
   Future<List<String>> getAdFilters() async {
     if (!_filtersLoaded) {
       try {
