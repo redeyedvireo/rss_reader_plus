@@ -142,9 +142,9 @@ class FeedDatabase {
         id: feedMap['feedid'],
         name: feedMap['name'],
         url: feedMap['url'],
-        dateAdded: DateTime.fromMillisecondsSinceEpoch(feedMap['added']),
-        lastUpdated: DateTime.fromMillisecondsSinceEpoch(feedMap['lastupdated']),
-        lastPurged: DateTime.fromMillisecondsSinceEpoch(feedMap['lastpurged']),
+        dateAdded: DateTime.fromMillisecondsSinceEpoch(feedMap['added']),         // WARNING: This is stored as a Julian date
+        lastUpdated: DateTime.fromMillisecondsSinceEpoch(feedMap['lastupdated']), // WARNING: This is stored as a Julian date
+        lastPurged: DateTime.fromMillisecondsSinceEpoch(feedMap['lastpurged']),   // WARNING: This is stored as a Julian date
         title: feedMap['title'],
         language: feedMap['language'],
         description: feedMap['description'],
@@ -210,6 +210,34 @@ class FeedDatabase {
       parentFeedId: feedId,
       read: dbResult['readflag'] == 1 ? true : false
     );
+  }
+
+  Future<bool> deleteFeedItem(int feedId, String guid) async {
+    String tableName = feedIdToString(feedId);
+
+    final numRowsRemoved = await sqlfliteDb.delete(tableName,
+                                                   where: 'guid = ?',
+                                                   whereArgs: [guid]);
+
+    return numRowsRemoved > 0;
+  }
+
+  Future<int> deleteFeedItemsByDate(int feedId, DateTime targetDate, bool deleteUnreadItems) async {
+    String tableName = feedIdToString(feedId);
+    String whereClause = '';
+    List<int> args = [ targetDate.millisecondsSinceEpoch ];
+
+    if (deleteUnreadItems) {
+      whereClause = 'pubdatetime = ?';
+    } else {
+      whereClause = 'pubdatetime = ? and readflag = 1';
+    }
+
+    final numRowsRemoved = await sqlfliteDb.delete(tableName,
+                                                    where: whereClause,
+                                                    whereArgs: args);
+
+    return numRowsRemoved;
   }
 
   /// Reads the guids of all feed items for the given feed.

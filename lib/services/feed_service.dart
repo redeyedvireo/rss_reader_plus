@@ -208,8 +208,15 @@ class FeedService {
 
         final newFeedItems = feedParser.getNewFeedItems(existingGuids);
 
+        // Remove feed items whose publication date is older than either the last updated date
+        // or the last purged date of the feed
+
+        final earliestAllowableDate = feed.lastPurged.isAfter(feed.lastUpdated) ? feed.lastPurged : feed.lastUpdated;
+
+        final dateFilteredFeedItems = newFeedItems.where((feedItem) => !feedItem.publicationDatetime.isBefore(earliestAllowableDate)).toList();
+
         // Perform filtering
-        final filteredFeedItems = _filterService.filterFeedItems(newFeedItems);
+        final filteredFeedItems = _filterService.filterFeedItems(dateFilteredFeedItems);
 
         // Store new feed items
         await db.writeFeedItems(feedId, filteredFeedItems);
