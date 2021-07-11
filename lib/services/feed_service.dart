@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/models/item_of_interest.dart';
@@ -19,6 +20,7 @@ class FeedService {
   FeedDatabase db;
   NotificationService _notificationService;
   FilterService _filterService;
+  Logger _logger;
   List<Feed> _feeds;                  // TODO: Make this a map
   Map<String, FeedItem> _feedItems;
   int _selectedFeedId;
@@ -35,6 +37,8 @@ class FeedService {
     db = Provider.of<FeedDatabase>(context, listen: false);
     _notificationService = Provider.of<NotificationService>(context, listen: false);
     _filterService = Provider.of<FilterService>(context, listen: false);
+    _logger = Logger('FeedService');
+
     _feeds = [];
     _feedItems = {};
     _selectedFeedId = ItemsOfInterestFeedId;
@@ -327,5 +331,47 @@ class FeedService {
     } catch (e) {
       print('[deleteFeed] ${e.message}');
     }
+  }
+
+  /// Purges all feeds.
+  Future<void> purgeFeeds(DateTime olderThanDate, bool deleteUnreadItems) async {
+    for (var i = 0; i < _feeds.length; i++) {
+      final feed = _feeds[i];
+
+      if (feed.id > 0) {
+        _notificationService.setStatusMessage('Purging ${feed.name}...');
+        await purgeFeed(feed.id, olderThanDate, deleteUnreadItems);
+      }
+    }
+
+    _notificationService.setStatusMessage('Feeds purged.');
+  }
+
+  Future<bool> purgeFeed(int feedId, DateTime targetDate, bool deleteUnreadItems) async {
+    Feed feed = getFeed(feedId);
+    bool success = false;
+
+    try {
+      final feedItemsPurged = await db.deleteFeedItemsByDate(feedId, targetDate, deleteUnreadItems);
+
+      _logger.info('$feedItemsPurged feed items purged from ${feed.name} ($feedId) purged.');
+
+      success = await db.writeLastPurged(feedId, DateTime.now());
+
+      if (feedId == _selectedFeedId) {
+        // Invalidate feed item cache
+        _feedItemsLoaded = false;
+      }
+
+      if (!success) {
+        _logger.info('[purgeFeed] Failed to update last purged date');
+      }
+
+      feedUpdated$.add(feedId);
+    } catch (e) {
+      _logger.severe('[purgeFeed] ${e.message}');
+    }
+  
+    return success;
   }
 }

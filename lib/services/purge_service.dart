@@ -19,10 +19,5 @@ class PurgeService {
     _logger = Logger('PurgeService');    
   }
 
-  Future<bool> purgeFeed(int feedId, DateTime olderThanDate, bool deleteUnreadItems) async {
-    Feed feed = _feedService.getFeed(feedId);
-    final feedItemsPurged = await _db.deleteFeedItemsByDate(feedId, olderThanDate, deleteUnreadItems);
 
-    _logger.info('$feedItemsPurged feed items purged from ${feed.name} ($feedId) purged.');
-  }
 }

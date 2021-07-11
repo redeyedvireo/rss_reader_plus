@@ -5,14 +5,16 @@ import 'package:rss_reader_plus/dialogs/ok_cancel_dialog.dart';
 import 'package:rss_reader_plus/dialogs/feed_purge_dialog.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
+import 'package:rss_reader_plus/services/purge_service.dart';
 
 enum FeedMenuAction { Refresh, Purge, Delete }
 
 class FeedItemHeaderWidget extends StatefulWidget {
   FeedService feedService;  
   NotificationService notificationService;
+  PurgeService purgeService;
 
-  FeedItemHeaderWidget(this.feedService, this.notificationService);
+  FeedItemHeaderWidget(this.feedService, this.notificationService, this.purgeService);
 
   @override
   _FeedItemHeaderWidgetState createState() => _FeedItemHeaderWidgetState();
@@ -64,10 +66,11 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
 
                   case FeedMenuAction.Purge:
                     final feedPurgeConfig = await PurgeFeedDialog.showFeedPurgeDialog(context);
-                    if (feedPurgeConfig.wasCanceled) {
-                      print('The purge dialog was canceled');
-                    } else {
+                    if (!feedPurgeConfig.wasCanceled) {
                       print('Days: ${feedPurgeConfig.targetDate}, include unread: ${feedPurgeConfig.deleteUnreadItems}');
+                      await widget.feedService.purgeFeed(widget.feedService.selectedFeedId,
+                                                         feedPurgeConfig.targetDate,
+                                                         feedPurgeConfig.deleteUnreadItems);
                     }
                     break;
 

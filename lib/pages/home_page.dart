@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/dialogs/new_feed_dialog.dart';
 import 'package:rss_reader_plus/services/initialization_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
+import 'package:rss_reader_plus/services/purge_service.dart';
 import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
 import '../widgets/feed_list_widget.dart';
@@ -34,6 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
     InitializationService _initializationService = Provider.of<InitializationService>(context, listen: false);
     FeedService _feedService = Provider.of<FeedService>(context);
     NotificationService _notificationService = Provider.of<NotificationService>(context);
+    PurgeService _purgeService = Provider.of<PurgeService>(context, listen: false);
     
     return FutureBuilder(
       future: _mainInit(_initializationService),
@@ -47,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return Center(child: Text(''),);
 
           case ConnectionState.done:
-            return _buildAll(context, _feedService, _notificationService);
+            return _buildAll(context, _feedService, _notificationService, _purgeService);
 
           default:
             return Center(child: Text(''));
@@ -60,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await initializationService.initialize();
   }
 
-  Widget _buildAll(BuildContext context, FeedService feedService, NotificationService notificationService) {
+  Widget _buildAll(BuildContext context, FeedService feedService, NotificationService notificationService, PurgeService purgeService) {
     return Scaffold(
       appBar: AppBar(
         title: Text('RssReader Plus'),
@@ -92,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        FeedItemHeaderWidget(feedService, notificationService),
+                        FeedItemHeaderWidget(feedService, notificationService, purgeService),
                         SizedBox(
                           height: feedItemPaneHeight,
                           child: FeedItemListWidget(feedService)

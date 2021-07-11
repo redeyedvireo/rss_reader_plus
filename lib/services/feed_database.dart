@@ -158,6 +158,47 @@ class FeedDatabase {
     return feeds;
   }
 
+  /// Note: this may throw an exception
+  Future<int> writeFeed(Feed feed) async {
+    await sqlfliteDb.insert(feedsTable, {
+      'name': feed.name,
+      'url': feed.url,
+      'parentid': feed.parentId,
+      'added': feed.dateAdded.millisecondsSinceEpoch ~/ 1000,
+      'lastupdated': feed.lastUpdated.millisecondsSinceEpoch ~/ 1000,
+      'title': feed.title,
+      'language': feed.language,
+      'description': feed.description,
+      'webpagelink': feed.webPageLink,
+      'favicon': feed.favicon,
+      'image': feed.image,
+      'lastpurged': feed.lastPurged.millisecondsSinceEpoch ~/ 1000
+    });
+    
+    // Retrieve the newly-inserted item, so that its ID can be obtained
+    final queryResult = await sqlfliteDb.query(feedsTable,
+                                                columns: ['feedid'],
+                                                where: 'url = ?',
+                                                whereArgs: [feed.url]);
+
+    if (queryResult.isNotEmpty) {
+      int feedId = queryResult.first['feedid'];
+      return feedId;
+    } else {
+      return 0;
+    }
+  }
+
+  Future<bool> writeLastPurged(int feedId, DateTime lastPurgedDateTime) async {
+    final numRecordsUpdated = await sqlfliteDb.update(feedsTable, {
+      'lastpurged': lastPurgedDateTime.millisecondsSinceEpoch ~/ 1000
+    },
+    where: 'feedid = ?',
+    whereArgs: [ feedId ]);
+
+    return numRecordsUpdated == 1;
+  }
+
   Future<Map<String, FeedItem>> readFeedItems(int feedId) async {
     String tableName = feedIdToString(feedId);
     Map<String, FeedItem> feedItems = {};
@@ -225,12 +266,12 @@ class FeedDatabase {
   Future<int> deleteFeedItemsByDate(int feedId, DateTime targetDate, bool deleteUnreadItems) async {
     String tableName = feedIdToString(feedId);
     String whereClause = '';
-    List<int> args = [ targetDate.millisecondsSinceEpoch ];
+    List<int> args = [ targetDate.millisecondsSinceEpoch ~/ 1000 ];
 
     if (deleteUnreadItems) {
-      whereClause = 'pubdatetime = ?';
+      whereClause = 'pubdatetime <= ?';
     } else {
-      whereClause = 'pubdatetime = ? and readflag = 1';
+      whereClause = 'pubdatetime <= ? and readflag = 1';
     }
 
     final numRowsRemoved = await sqlfliteDb.delete(tableName,
@@ -352,37 +393,6 @@ class FeedDatabase {
       return queryResult.first['readflag'] == 1;
     } else {
       return false;
-    }
-  }
-
-  /// Note: this may throw an exception
-  Future<int> writeFeed(Feed feed) async {
-    await sqlfliteDb.insert(feedsTable, {
-      'name': feed.name,
-      'url': feed.url,
-      'parentid': feed.parentId,
-      'added': feed.dateAdded.millisecondsSinceEpoch ~/ 1000,
-      'lastupdated': feed.lastUpdated.millisecondsSinceEpoch ~/ 1000,
-      'title': feed.title,
-      'language': feed.language,
-      'description': feed.description,
-      'webpagelink': feed.webPageLink,
-      'favicon': feed.favicon,
-      'image': feed.image,
-      'lastpurged': feed.lastPurged.millisecondsSinceEpoch ~/ 1000
-    });
-    
-    // Retrieve the newly-inserted item, so that its ID can be obtained
-    final queryResult = await sqlfliteDb.query(feedsTable,
-                                                columns: ['feedid'],
-                                                where: 'url = ?',
-                                                whereArgs: [feed.url]);
-
-    if (queryResult.isNotEmpty) {
-      int feedId = queryResult.first['feedid'];
-      return feedId;
-    } else {
-      return 0;
     }
   }
 

@@ -37,6 +37,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
       // If the feed that was updated is the one being displayed, then refresh contents
       if (feedId == widget.feedService.selectedFeedId) {
         setState(() {
+          _feedItems = [];
         });
       }
     });
