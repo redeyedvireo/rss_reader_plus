@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.0.6
   logging: ^1.0.1
   html: ^0.15.0
+  flutter_touch_spin: ^2.0.0-nullsafety.1
 
   # webfeed doesn't seem to be compatible with intl and flutter_html at this time, because it
   # depends on conflicting library versions.  Perhaps this will be fixed in the future.

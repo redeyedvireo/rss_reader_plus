@@ -7,6 +7,12 @@ String feedIdToString(int feedId) {
   return 'FeedItems${"0" * zerosNeeded}$feedIdStr';
 }
 
+/// Returns the date that is the specified number of days before today.
+DateTime daysBeforeNow(int days) {
+  final today = DateTime.now();
+  return today.subtract(Duration(days: days));
+}
+
 /// Attempts to parse a date/time.  Tries several formats before giving up.
 DateTime parseDate(String inDateTime) {
   List<String> possibleDateTimeFormats = [

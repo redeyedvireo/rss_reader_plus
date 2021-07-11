@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
 import 'package:rss_reader_plus/dialogs/ok_cancel_dialog.dart';
+import 'package:rss_reader_plus/dialogs/feed_purge_dialog.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 
-enum FeedMenuAction { Refresh, Delete }
+enum FeedMenuAction { Refresh, Purge, Delete }
 
 class FeedItemHeaderWidget extends StatefulWidget {
   FeedService feedService;  
@@ -61,6 +62,15 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
                     await widget.feedService.fetchFeed(widget.feedService.selectedFeed.id);
                     break;
 
+                  case FeedMenuAction.Purge:
+                    final feedPurgeConfig = await PurgeFeedDialog.showFeedPurgeDialog(context);
+                    if (feedPurgeConfig.wasCanceled) {
+                      print('The purge dialog was canceled');
+                    } else {
+                      print('Days: ${feedPurgeConfig.targetDate}, include unread: ${feedPurgeConfig.deleteUnreadItems}');
+                    }
+                    break;
+
                   case FeedMenuAction.Delete:
                     final okToDelete = await showOkCancelDialog(context,
                     'Delete Feed?',
@@ -82,6 +92,9 @@ class _FeedItemHeaderWidgetState extends State<FeedItemHeaderWidget> {
               PopupMenuItem(
                 value: FeedMenuAction.Refresh,
                 child: Text('Refresh'),),
+              PopupMenuItem(
+                value: FeedMenuAction.Purge,
+                child: Text('Purge')),
               PopupMenuDivider(),
               PopupMenuItem(
                 value: FeedMenuAction.Delete,
