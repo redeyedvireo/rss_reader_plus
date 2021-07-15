@@ -21,6 +21,7 @@ class FeedDatabase {
   static final feedItemFilterTable = 'feeditemfilters';
   static final filteredWordsTable = 'filteredwords';
   static final adFiltersTable = 'adfilters';
+  static final keystoreTable = 'keystore';
 
   FeedDatabase();
 
@@ -507,5 +508,24 @@ class FeedDatabase {
     return await sqlfliteDb.delete(adFiltersTable,
                                     where: 'word = ?',
                                     whereArgs: [adFilter]);
+  }
+
+  Future<int> writeKeystoreItem(String key, String value) async {
+    return await sqlfliteDb.insert(keystoreTable, {
+      'key': key,
+      'value': value
+    });
+  }
+
+  Future<String> readKeystoreItem(String key) async {
+    final queryResult = await sqlfliteDb.query(keystoreTable,
+                                               columns: [ 'value' ],
+                                               where: 'key = ?',
+                                               whereArgs: [key]);
+    if (queryResult.isNotEmpty) {
+      return queryResult.first['value'];
+    } else {
+      return '';
+    }                                               
   }
 }

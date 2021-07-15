@@ -10,6 +10,7 @@ import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/filter_service.dart';
 import 'package:rss_reader_plus/services/initialization_service.dart';
+import 'package:rss_reader_plus/services/keystore_service.dart';
 import 'package:rss_reader_plus/services/language_filter_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rss_reader_plus/services/prefs_service.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
       Provider<AppState>(create: (context) => AppState()),
       Provider<UpdateService>(create: (context) => UpdateService(context)),
       Provider<PurgeService>(create: (context) => PurgeService(context)),
+      Provider<KeystoreService>(create: (context) => KeystoreService(context)),
       Provider<InitializationService>(create: (context) => InitializationService(context)),
     ],
     child: MaterialApp(
