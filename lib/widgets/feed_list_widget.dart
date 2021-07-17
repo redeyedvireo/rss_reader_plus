@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:logging/logging.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
@@ -16,6 +17,7 @@ class FeedListWidget extends StatefulWidget {
 
 
 class _FeedListWidgetState extends State<FeedListWidget> {
+  Logger _logger;
   ScrollController _controller;
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
   List<Feed> _feeds;
@@ -24,6 +26,8 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   @override
   void initState() {
     super.initState();
+
+    _logger = Logger('FeedListWidget');
 
     _feeds = [];
     _unreadCount = {};
@@ -81,7 +85,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
           itemCount: feeds.length,
           controller: _controller,
           itemBuilder: (BuildContext context, int index) {
-            return _buildFeedRow(context, feeds[index], feedService, notificationService);
+            return _buildFeedRow(context, _feeds[index], feedService, notificationService);
           },
         ),
       ),

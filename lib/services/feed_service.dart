@@ -7,6 +7,7 @@ import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/models/item_of_interest.dart';
 import 'package:rss_reader_plus/parser/feed_identifier.dart';
 import 'package:rss_reader_plus/services/filter_service.dart';
+import 'package:rss_reader_plus/services/keystore_service.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rxdart/rxdart.dart';
@@ -16,16 +17,19 @@ import 'feed_database.dart';
 
 class FeedService {
   static const ItemsOfInterestFeedId = -1;
+  static const String _feedOrderKey = 'feed-order';
 
   FeedDatabase db;
   NotificationService _notificationService;
   FilterService _filterService;
+  KeystoreService _keystoreService;
   Logger _logger;
-  List<Feed> _feeds;                  // TODO: Make this a map
+  List<Feed> _feeds;                  // Feeds, ordered by the feed-order field in the database
   Map<String, FeedItem> _feedItems;
   int _selectedFeedId;
   String _selectedFeedItem;
   bool _feedItemsLoaded;
+  bool _feedsLoaded;
   
   final BehaviorSubject feedSelected$ = BehaviorSubject<int>();
   final BehaviorSubject feedItemSelected$ = BehaviorSubject<String>();
@@ -37,6 +41,7 @@ class FeedService {
     db = Provider.of<FeedDatabase>(context, listen: false);
     _notificationService = Provider.of<NotificationService>(context, listen: false);
     _filterService = Provider.of<FilterService>(context, listen: false);
+    _keystoreService = Provider.of<KeystoreService>(context, listen: false);
     _logger = Logger('FeedService');
 
     _feeds = [];
@@ -44,6 +49,7 @@ class FeedService {
     _selectedFeedId = ItemsOfInterestFeedId;
     _selectedFeedItem = '';
     _feedItemsLoaded = false;
+    _feedsLoaded = false;
   }
 
   int get selectedFeedId => _selectedFeedId;
@@ -82,9 +88,29 @@ class FeedService {
   }
 
   Future<List<Feed>> getFeeds() async {
-    if (_feeds.length == 0) {
+    if (!_feedsLoaded) {
       try {
-        _feeds = await db.readFeeds();
+        List<Feed> allFeeds = await db.readFeeds();
+
+        final feedOrderStr = await _keystoreService.readString(_feedOrderKey);
+        final orderedFeedIds = feedOrderStr.split(',').map((feedStr) => int.parse(feedStr)).toList();
+
+        _feeds = [];
+
+        orderedFeedIds.forEach((feedId) {
+          final feed = allFeeds.where((f) => f.id == feedId);
+          if (feed.isNotEmpty) {
+            _feeds.add(feed.first);
+          }
+        });
+
+        // In case there are any feeds that were not included in the feed order string, add them at the end.
+        allFeeds.forEach((feed) {
+          if (!orderedFeedIds.contains(feed.id)) {
+            _logger.warning('Feed ID ${feed.id} (${feed.name}) was not included in the feed order');
+            _feeds.add(feed);
+          }
+        });
 
         // Prepend Item of Interest feed
         final ioiFeed = Feed(id: ItemsOfInterestFeedId,
@@ -92,6 +118,8 @@ class FeedService {
                               title: 'Items of Interest',
                               description: 'Items of Interest');
         _feeds.insert(0, ioiFeed);
+
+        _feedsLoaded = true;
       } catch (e) {
         print('[getFeeds] ${e.message}');
       }

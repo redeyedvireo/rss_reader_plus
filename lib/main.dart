@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
       Provider<PrefsService>(create: (context) => PrefsService()),
       Provider<NotificationService>(create: (context) => NotificationService()),
       Provider<FeedDatabase>(create: (context) => FeedDatabase()),
+      Provider<KeystoreService>(create: (context) => KeystoreService(context)),
       Provider<FilterService>(create: (context) => FilterService(context)),
       Provider<LanguageFilterService>(create: (context) => LanguageFilterService(context)),
       Provider<AdFilterService>(create: (context) => AdFilterService(context)),
@@ -37,7 +38,6 @@ class MyApp extends StatelessWidget {
       Provider<AppState>(create: (context) => AppState()),
       Provider<UpdateService>(create: (context) => UpdateService(context)),
       Provider<PurgeService>(create: (context) => PurgeService(context)),
-      Provider<KeystoreService>(create: (context) => KeystoreService(context)),
       Provider<InitializationService>(create: (context) => InitializationService(context)),
     ],
     child: MaterialApp(

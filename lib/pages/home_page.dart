@@ -62,7 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
     await initializationService.initialize();
   }
 
-  Widget _buildAll(BuildContext context, FeedService feedService, NotificationService notificationService, PurgeService purgeService) {
+  Widget _buildAll(BuildContext context,
+                   FeedService feedService,
+                   NotificationService notificationService,
+                   PurgeService purgeService) {
     return Scaffold(
       appBar: AppBar(
         title: Text('RssReader Plus'),
