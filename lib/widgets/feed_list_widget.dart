@@ -81,11 +81,16 @@ class _FeedListWidgetState extends State<FeedListWidget> {
             ),
       child: Padding(
         padding: const EdgeInsets.only(right: 0),
-        child: ListView.builder(
-          itemCount: feeds.length,
-          controller: _controller,
-          itemBuilder: (BuildContext context, int index) {
-            return _buildFeedRow(context, _feeds[index], feedService, notificationService);
+        child: ReorderableListView(
+          scrollController: _controller,
+          children: [
+            for (int index = 0; index < feeds.length; index++)
+              _buildFeedRow(context, feeds[index], feedService, notificationService)
+          ],
+          onReorder: (int oldIndex, int newIndex) {
+            setState(() {
+              feedService.moveFeed(oldIndex, newIndex);
+            });
           },
         ),
       ),
@@ -94,6 +99,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
 
   Widget _buildFeedRow(BuildContext context, Feed feed, FeedService feedService, NotificationService notificationService) {
     return Container(
+      key: ValueKey(feed.id),
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       color: _backgroundColor(feed, feedService),
       child: MouseRegion(

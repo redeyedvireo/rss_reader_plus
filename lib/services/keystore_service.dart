@@ -24,6 +24,15 @@ class KeystoreService {
     }
   }
 
+  Future<bool> updateString(String key, String value) async {
+    try {
+      return await _db.updateKeystoreItem(key, value);
+    } catch (e) {
+      _logger.severe('[updateString] ${e.message}');
+      return false;
+    }
+  }
+
   Future<String> readString(String key) async {
     try {
       return await _db.readKeystoreItem(key);
@@ -39,6 +48,15 @@ class KeystoreService {
       return result > 0;
     } catch (e) {
       _logger.severe('[writeInt] ${e.message}');
+      return false;
+    }
+  }
+
+  Future<bool> updateInt(String key, int value) async {
+    try {
+      return await _db.updateKeystoreItem(key, value.toString());
+    } catch (e) {
+      _logger.severe('[updateInt] ${e.message}');
       return false;
     }
   }

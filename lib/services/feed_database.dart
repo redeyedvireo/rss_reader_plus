@@ -528,4 +528,14 @@ class FeedDatabase {
       return '';
     }                                               
   }
+
+  Future<bool> updateKeystoreItem(String key, String value) async {
+    final numRecordsUpdated = await sqlfliteDb.update(keystoreTable, {
+      'value': value
+    },
+    where: 'key = ?',
+    whereArgs: [ key ]);
+
+    return numRecordsUpdated == 1;
+  }
 }

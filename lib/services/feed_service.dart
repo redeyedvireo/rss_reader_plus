@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -126,6 +127,32 @@ class FeedService {
     }
     
     return _feeds;
+  }
+
+  /// Moves the position of a feed in the feed order
+  Future<void> moveFeed(int oldPosition, int newPosition) async {
+    if (_feedsLoaded) {
+      if (newPosition > oldPosition) {
+        newPosition--;
+      }
+
+      final feed = _feeds.removeAt(oldPosition);
+
+      _feeds.insert(newPosition, feed);
+
+      // Write new feed order
+      final feedOrderString = generateFeedOrderString;
+      print('Feed order string: $feedOrderString');
+
+      await _keystoreService.updateString(_feedOrderKey, feedOrderString);
+    }
+  }
+
+  String get generateFeedOrderString {
+    return _feeds.map((feed) => feed.id.toString())
+                    .toList()
+                    .slice(1)    // Remove Items of Interest feed
+                    .join(',');
   }
 
   void selectFeedItem(String feedItemId) {
