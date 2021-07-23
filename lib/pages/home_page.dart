@@ -6,6 +6,7 @@ import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rss_reader_plus/services/purge_service.dart';
 import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
 import 'package:rss_reader_plus/widgets/status_bar_widget.dart';
+import 'package:split_view/split_view.dart';
 import '../widgets/feed_list_widget.dart';
 import '../widgets/feed_item_list_widget.dart';
 import '../widgets/feed_item_view_widget.dart';
@@ -84,31 +85,46 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
+              child: SplitView(
+                viewMode: SplitViewMode.Horizontal,
+                gripSize: 8.0,
+                gripColor: Colors.blue.shade100,
+                gripColorActive: Colors.blue.shade600,
+                indicator: SplitIndicator(viewMode: SplitViewMode.Horizontal,),
+                activeIndicator: SplitIndicator(
+                  viewMode: SplitViewMode.Horizontal,
+                  isActive: true,
+                ),
+                controller: SplitViewController(
+                  weights: [.2, .8],
+                  limits: [WeightLimit(min: .1, max: .3), null]),
                 children: <Widget>[
-                  SizedBox(
-                    width: feedPaneWidth,
-                    child: FeedListWidget(feedService, notificationService),
-                  ),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        FeedItemHeaderWidget(feedService, notificationService, purgeService),
-                        SizedBox(
-                          height: feedItemPaneHeight,
-                          child: FeedItemListWidget(feedService)
-                        ),
-                        Expanded(
-                          child: FeedItemViewWidget(feedService, notificationService)
-                        )
-                      ],
+                  FeedListWidget(feedService, notificationService),
+                  SplitView(
+                    viewMode: SplitViewMode.Vertical,
+                    gripSize: 8.0,
+                    gripColorActive: Colors.blue.shade600,
+                    gripColor: Colors.blue.shade100,
+                    indicator: SplitIndicator(viewMode: SplitViewMode.Vertical,),
+                    activeIndicator: SplitIndicator(
+                      viewMode: SplitViewMode.Vertical,
+                      isActive: true,),
+                    controller: SplitViewController(
+                      weights: [.5, .5],
+                      limits: [WeightLimit(min: .1, max: .9)]
                     ),
+                    children: [
+                      Column(
+                        mainAxisSize: MainAxisSize.max,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          FeedItemHeaderWidget(feedService, notificationService, purgeService),
+                          Expanded(child: FeedItemListWidget(feedService)),
+                        ],
+                      ),
+                      FeedItemViewWidget(feedService, notificationService)
+                    ],
                   )
-                  
                 ],
               ),
             ),
