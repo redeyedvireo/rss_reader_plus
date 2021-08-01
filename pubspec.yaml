@@ -40,8 +40,7 @@ dependencies:
   html: ^0.15.0
   flutter_touch_spin: ^2.0.0-nullsafety.1
   split_view: ^3.1.0
-  table_sticky_headers: ^2.0.0
-  after_layout: ^1.1.0
+
 
   # webfeed doesn't seem to be compatible with intl and flutter_html at this time, because it
   # depends on conflicting library versions.  Perhaps this will be fixed in the future.

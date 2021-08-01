@@ -1,15 +1,11 @@
-import 'package:after_layout/after_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/language_filter_service.dart';
-import 'package:rss_reader_plus/widgets/feed_item_header_widget.dart';
-import 'package:table_sticky_headers/table_sticky_headers.dart';
 
 class FeedItemListWidget extends StatefulWidget {
   FeedService feedService;
@@ -20,7 +16,7 @@ class FeedItemListWidget extends StatefulWidget {
   _FeedItemListWidgetState createState() => _FeedItemListWidgetState();
 }
 
-class _FeedItemListWidgetState extends State<FeedItemListWidget> with AfterLayoutMixin<FeedItemListWidget> {
+class _FeedItemListWidgetState extends State<FeedItemListWidget> {
   Logger _logger;
   GlobalKey _keyTable = GlobalKey();
   LanguageFilterService _languageFilterService;
@@ -33,7 +29,6 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> with AfterLayou
     'Author',
     'Categories'
   ];
-  List<double> _columnWidths = [ 450.0, 150.0, 200.0, 300.0 ];
 
   @override
   void initState() {
@@ -60,9 +55,7 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> with AfterLayou
   @override
   Widget build(BuildContext context) {
     _languageFilterService = Provider.of<LanguageFilterService>(context, listen: false);
-    // _computeColumnWidths();
 
-    SchedulerBinding.instance.addPostFrameCallback(postFrameCallback);
 
     return FutureBuilder(
       future: _getFeedItems(),
@@ -85,31 +78,12 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> with AfterLayou
     _feedItems = await widget.feedService.getFeedItems();
   }
 
-  @override
-  void afterFirstLayout(BuildContext context) {
-    _computeColumnWidths();
-  }
-
-  void postFrameCallback(_) {
-    final context = _keyTable.currentContext;
-    if (context == null) return;
-
-    final newSize = context.size;
-
-    print('newSize: ${newSize}');
-
-    // if (oldSize == newSize) return;
-
-    // oldSize = newSize;
-    // widget.onChange(newSize);
-  }
-
   // TODO: The list view could probably be refactored into a "SelectableList" widget.
 
   Widget _buildAll(BuildContext context, FeedService feedService, List<FeedItem> feedItems) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
-    final mediaQueryData = MediaQuery.of(context);
 
+    // final mediaQueryData = MediaQuery.of(context);
     // print('Media query data: ${mediaQueryData.size}');
 
     if (feedItems.length == 0) {
@@ -120,22 +94,6 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> with AfterLayou
           border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor))),
         child: Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 0),
-          // child: StickyHeadersTable(
-          //   key: _keyTable,
-          //   columnsLength: 4,
-          //   rowsLength: feedItems.length,
-          //   cellAlignments: CellAlignments.uniform(Alignment.centerLeft),
-          //   cellDimensions: CellDimensions.variableColumnWidth(
-          //     columnWidths: _columnWidths,
-          //     contentCellHeight: 25.0,
-          //     stickyLegendWidth: 0,
-          //     stickyLegendHeight: 40),
-          //   columnsTitleBuilder: _tableTitleBuilder,
-          //   rowsTitleBuilder: (i) => null,
-          //   contentCellBuilder: _tableContentBuilder,
-          //   onContentCellPressed: _onTableCellPressed,
-          // ),
-
           child: Column(
             children: [
               _buildColumnHeaderWidget(context),
@@ -155,87 +113,29 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> with AfterLayou
     }
   }
 
-  void _computeColumnWidths() {
-    final column1Fraction = 0.6;
-    final column3Fraction = 0.2;
-    final column4Fraction = 0.2;
-    final column2Width = 150.0;
-
-    if (_keyTable.currentContext != null) {
-      final RenderBox renderBox = _keyTable.currentContext.findRenderObject();
-      final sizeTable = renderBox.size;
-      final widgetWidth = sizeTable.width;
-
-      double remainingWidth = widgetWidth - column2Width;
-      double column1Width = remainingWidth * column1Fraction;
-      double column3Width = remainingWidth * column3Fraction;
-      double column4Width = remainingWidth * column4Fraction;
-
-      _columnWidths = [column1Width, column2Width, column3Width, column4Width];
-    } else {
-      _logger.severe('_computeColumnWidths: _keyTable.currentContext is null');
-    }
-  }
-
-  Widget _tableTitleBuilder(int pos) => Text(_columnTitles[pos]);
-
-  Widget _tableContentBuilder(int col, int row) {
-    final feedItem = _feedItems[row];
-
-        // Perform language filtering on the title
-    final filteredTitle = _languageFilterService.performLanguageFilteringOnString(feedItem.title);
-
-    switch (col) {
-      case 0:
-        return _rowTextForStickyTable(filteredTitle, feedItem, widget.feedService);
-        // return _testRowText(filteredTitle, feedItem, widget.feedService);
-      
-      case 1:
-        return _rowTextForStickyTable(DateFormat('M/d/y h:mm a').format(feedItem.publicationDatetime), feedItem, widget.feedService);
-
-      case 2:
-        return _rowTextForStickyTable(feedItem.author, feedItem, widget.feedService);
-
-      case 3:
-        return _rowTextForStickyTable(feedItem.categories.join(' '), feedItem, widget.feedService);
-
-      default:
-        _logger.severe('Invalid table column: $col');
-        return Text('');
-    }
-  }
-
-  Future<void> _onTableCellPressed(int col, int row) async {
-    final feedItem = _feedItems[row];
-
-    print("Tapped on feed item ${feedItem.guid}");
-    widget.feedService.selectFeedItem(feedItem.guid);
-    await widget.feedService.setFeedItemReadFlag(feedItem.guid, feedItem.parentFeedId, true);
-    setState(() {
-      feedItem.read = true;
-    });
-  }
-
   Widget _buildColumnHeaderWidget(BuildContext context) {
-    return Row(children: [
-              Expanded(
-                flex: 3,
-                child: Text('Title'),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text('Date'),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text('Author'),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text('Categories'),
-              )
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(children: [
+                Expanded(
+                  flex: 3,
+                  child: Text('Title'),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text('Date'),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text('Author'),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text('Categories'),
+                )
 
-    ]);
+      ]),
+    );
   }
 
   Widget _buildFeedItemRow(BuildContext context, int index, FeedItem feedItem, FeedService feedService) {
@@ -296,31 +196,10 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> with AfterLayou
     return _isSelected(feedItem, feedService) ? Colors.white : Colors.black;
   }
 
-  Widget _rowTextForStickyTable(String text, FeedItem feedItem, FeedService feedService) {
-    return Container(
-      color: _backgroundColor(feedItem, feedService),
-      alignment: Alignment.centerLeft,
-      constraints: BoxConstraints.expand(),
-      child: Text(text, overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: _textColor(feedItem, feedService),
-                         fontWeight: feedItem.read ? FontWeight.normal : FontWeight.bold),
-      ),
-    );
-  }
-
   Widget _rowText(String text, FeedItem feedItem, FeedService feedService) {
     return Text(text, overflow: TextOverflow.ellipsis,
       style: TextStyle(color: _textColor(feedItem, feedService),
                        fontWeight: feedItem.read ? FontWeight.normal : FontWeight.bold),
-    );
-  }
-
-  Widget _testRowText(String text, FeedItem feedItem, FeedService feedService) {
-    return Container(
-      alignment: Alignment.centerLeft,
-      constraints: BoxConstraints.expand(),
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      color: Colors.amber,
     );
   }
 }
