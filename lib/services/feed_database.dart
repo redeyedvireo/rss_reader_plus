@@ -11,6 +11,8 @@ import 'package:rss_reader_plus/util/utils.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+const DATABASE_VERSION = 1;
+
 class FeedDatabase {
   static const DB_FILE = 'Feeds.db';
   static const DB_VERSION = 1;
@@ -33,9 +35,9 @@ class FeedDatabase {
 
     sqfliteFfiInit();
     final databaseFactory = databaseFactoryFfi;
-    return await databaseFactory.openDatabase(path);
-
-    // return await openDatabase(path, version: DB_VERSION, onCreate: FeedDatabase.onCreate);
+    return await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
+                                                                version: DATABASE_VERSION,
+                                                                onCreate: FeedDatabase.onCreate));
   }
 
   static Future<String> getDatabaseDirectory() async {
@@ -82,22 +84,79 @@ class FeedDatabase {
   }
 
   static Future<void> createTables(Database db) async {
-    // String sql = 'CREATE TABLE $fillupsTable( ' +
-    //       '$columnTimestamp INTEGER UNIQUE NOT NULL, ' +
-    //       '$columnPricePerVolume REAL, ' +
-    //       '$columnVolume REAL, ' +
-    //       '$columnOdometer REAL, ' +
-    //       '$columnPreviousOdometer REAL, ' +
-    //       '$columnTripOdometer REAL, ' +
-    //       '$columnDistance REAL,' +
-    //       '$columnDistanceDetermination INTEGER,' +
-    //       '$columnOctane INTEGER, ' +
-    //       '$columnDistVolRatio REAL, ' +
-    //       '$columnLat REAL, ' +
-    //       '$columnLon REAL '
-    //     ')';
+    await createFeedTable(db);
+    await createItemsOfInterestTable(db);
+    await createFilteredWordsTable(db);
+    await createFeedItemFilters(db);
+    await createAdFilters(db);
+    await createKeystoreTable(db);
+  }
 
-    // await db.execute(sql);
+  static Future<void> createFeedTable(Database db) async {
+    final sql = 'CREATE TABLE $feedsTable ('
+        'feedid integer primary key, '  // Unique Feed ID (must not be 0).  SQLite guarantees this field to be unique
+        'name text, '                   // User - specified name of feed
+        'url text, '                    // Feed URL
+        'parentid integer, '            // Page's parent page (TODO: Figure out how to use this)
+        'added integer, '               // Date and time the feed was added, as a time_t
+        'lastupdated integer, '         // Date and time page was last updated, as a time_t
+        'title text, '                  // Feed title
+        'language text, '               // Feed language
+        'description text, '            // Feed description
+        'webpagelink text, '            // URL of web site that owns this feed
+        'favicon blob, '                // Favicon for feed's main web site
+        'image blob, '                  // Feed image(not a favicon)
+        'lastpurged integer default 0'  // Date and time the feed was last purged
+        ')';
+
+    await db.execute(sql);
+  }
+
+  static Future<void> createItemsOfInterestTable(Database db) async {
+    final sql = 'CREATE TABLE $itemsOfInterestTable ('
+        'feedid integer, ' // Feed ID of this item
+        'guid text '       //Item guid
+        ')';
+
+    await db.execute(sql);
+  }
+
+  static Future<void> createFilteredWordsTable(Database db) async {
+    final sql = 'CREATE TABLE $filteredWordsTable ('
+        'word text '  // Word to filter
+        ')';
+
+    await db.execute(sql);
+  }
+
+  static Future<void> createFeedItemFilters(Database db) async {
+    final sql = 'create table $feedItemFilterTable ('
+        'filterid integer primary key, '  // Filter ID
+        'feedid integer, '                // Feed ID
+        'field integer, '                 // ID of field to query
+        'verb integer, '                  // Query action to perform
+        'querystring text, '              // String to look for
+        'action integer '                 // Action ID
+        ')';
+
+    await db.execute(sql);
+  }
+
+  static Future<void> createAdFilters(Database db) async {
+    final sql = 'create table $adFiltersTable ('
+        'word text '  // Word to filter
+        ')';
+
+    await db.execute(sql);
+  }
+
+  static Future<void> createKeystoreTable(Database db) async {
+    final sql = 'create table $keystoreTable ('
+        'key text, '
+        'value text'
+        ')';
+
+    await db.execute(sql);
   }
 
   Future<void> createFeedItemTable(int feedId) async {
