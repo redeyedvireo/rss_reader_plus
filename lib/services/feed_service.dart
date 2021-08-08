@@ -93,17 +93,21 @@ class FeedService {
       try {
         List<Feed> allFeeds = await db.readFeeds();
 
-        final feedOrderStr = await _keystoreService.readString(_feedOrderKey);
-        final orderedFeedIds = feedOrderStr.split(',').map((feedStr) => int.parse(feedStr)).toList();
-
         _feeds = [];
 
-        orderedFeedIds.forEach((feedId) {
-          final feed = allFeeds.where((f) => f.id == feedId);
-          if (feed.isNotEmpty) {
-            _feeds.add(feed.first);
-          }
-        });
+        final feedOrderStr = await _keystoreService.readString(_feedOrderKey);
+        List<int> orderedFeedIds = [];
+
+        if (feedOrderStr.isNotEmpty) {
+          orderedFeedIds = feedOrderStr.split(',').map((feedStr) => int.parse(feedStr)).toList();
+
+          orderedFeedIds.forEach((feedId) {
+            final feed = allFeeds.where((f) => f.id == feedId);
+            if (feed.isNotEmpty) {
+              _feeds.add(feed.first);
+            }
+          });
+        }
 
         // In case there are any feeds that were not included in the feed order string, add them at the end.
         allFeeds.forEach((feed) {
