@@ -95,19 +95,14 @@ class FeedService {
 
         _feeds = [];
 
-        final feedOrderStr = await _keystoreService.readString(_feedOrderKey);
-        List<int> orderedFeedIds = [];
+        List<int> orderedFeedIds = await getFeedOrderList();
 
-        if (feedOrderStr.isNotEmpty) {
-          orderedFeedIds = feedOrderStr.split(',').map((feedStr) => int.parse(feedStr)).toList();
-
-          orderedFeedIds.forEach((feedId) {
-            final feed = allFeeds.where((f) => f.id == feedId);
-            if (feed.isNotEmpty) {
-              _feeds.add(feed.first);
-            }
-          });
-        }
+        orderedFeedIds.forEach((feedId) {
+          final feed = allFeeds.where((f) => f.id == feedId);
+          if (feed.isNotEmpty) {
+            _feeds.add(feed.first);
+          }
+        });
 
         // In case there are any feeds that were not included in the feed order string, add them at the end.
         allFeeds.forEach((feed) {
@@ -360,6 +355,9 @@ class FeedService {
       // Store new feed items
       await db.writeFeedItems(feedId, newFeedItems);
 
+      // Update feed order
+      await writeFeedOrderList();
+
       // No need to emit feedUpdated$ here, since this feed won't be displayed (because it is new)
     } else {
       // This should not happen, since database errors are handled by catching an exception
@@ -370,6 +368,27 @@ class FeedService {
     return feedId;
   }
 
+  Future<List<int>> getFeedOrderList() async {
+    final feedOrderStr = await _keystoreService.readString(_feedOrderKey);
+    List<int> orderedFeedIds = [];
+
+    if (feedOrderStr.isNotEmpty) {
+      orderedFeedIds = feedOrderStr.split(',').map((feedStr) => int.parse(feedStr)).toList();
+    }
+
+    return orderedFeedIds;
+  }
+
+  Future<void> writeFeedOrderList() async {
+    final feedOrderString = generateFeedOrderString;
+    
+    if (await _keystoreService.keyExists(_feedOrderKey)) {
+      await _keystoreService.updateString(_feedOrderKey, feedOrderString);
+    } else {
+      await _keystoreService.writeString(_feedOrderKey, feedOrderString);
+    }
+  }
+
   Future<void> deleteFeed(int feedId) async {
     try {
       await db.deleteFeedItemTable(feedId);
@@ -377,6 +396,8 @@ class FeedService {
       if (!success) {
         print('[deleteFeed] Failed to delete feed');
       }
+
+      await db.vacuumDatabase();
 
       _feeds.removeWhere((element) => element.id == feedId);
 

@@ -70,4 +70,13 @@ class KeystoreService {
       return 0;
     }
   }
+
+  Future<bool> keyExists(String key) async {
+    try {
+      return await _db.keyExistsInKeystore(key);
+    } catch (e) {
+      _logger.severe('[keyExists] Error checking if key $key exists in the keystore');
+      return false;
+    }
+  }
 }

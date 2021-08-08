@@ -259,6 +259,10 @@ class FeedDatabase {
     return numRecordsUpdated == 1;
   }
 
+  Future<void> vacuumDatabase() async {
+    await sqlfliteDb.rawQuery('vacuum;');
+  }
+
   Future<Map<String, FeedItem>> readFeedItems(int feedId) async {
     String tableName = feedIdToString(feedId);
     Map<String, FeedItem> feedItems = {};
@@ -596,5 +600,14 @@ class FeedDatabase {
     whereArgs: [ key ]);
 
     return numRecordsUpdated == 1;
+  }
+
+  /// Determines if the given key exists in the keystore.
+  Future<bool> keyExistsInKeystore(String key) async {
+    final queryResult = await sqlfliteDb.query(keystoreTable,
+                                               columns: [ 'value' ],
+                                               where: 'key = ?',
+                                               whereArgs: [key]);
+    return queryResult.isNotEmpty;
   }
 }
