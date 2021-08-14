@@ -6,6 +6,7 @@ import 'package:clipboard/clipboard.dart';
 import 'package:rss_reader_plus/services/ad_filter_service.dart';
 import 'package:rss_reader_plus/services/language_filter_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
+import 'package:rss_reader_plus/widgets/feed_item_view_header_widget.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,7 @@ class FeedItemViewWidget extends StatefulWidget {
 class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   LanguageFilterService _languageFilterService;
   AdFilterService _adFilterService;
+  String _feedContent;
 
   @override
   void initState() {
@@ -50,6 +52,8 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
     FeedItem feedItem = widget.feedService.selectedFeedItem;
 
     if (feedItem.isValid) {
+      _feedContent = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.description;
+
       return _buildAll(context, feedItem, widget.notificationService);
     } else {
       return Center(child: Text(""),);
@@ -58,10 +62,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   }
 
   Widget _buildAll(BuildContext context, FeedItem feedItem, NotificationService notificationService) {
-    String content;
-
-    content = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.description;
-    dom.Document document = htmlparser.parse(content);
+    dom.Document document = htmlparser.parse(_feedContent);
 
     _languageFilterService.filterContent(document);
     _adFilterService.filterContent(document);
@@ -70,8 +71,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
 
     return Column(
       children: [
-        Text(feedItemTitle,
-          style: TextStyle(fontSize: 24)),
+        FeedItemViewHeaderWidget(feedItemTitle, copyFeedText),
         Flexible(
           child: Padding(
             padding: const EdgeInsets.only(top: 4.0, right: 0),
@@ -92,25 +92,11 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
             ),
           ),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: Theme.of(context).dividerColor))),
-          child: ButtonBar(
-            buttonHeight: 16.0,
-            buttonPadding: EdgeInsets.symmetric(vertical: 1.0),
-            children: [
-              TextButton(
-                child: Text('Copy feed text'),
-                onPressed: () async {
-                  print('Copy feed pressed');
-                  await FlutterClipboard.copy(content);
-                },
-              )
-            ],
-          ),
-        ),
       ],
     );
+  }
+
+  Future<void> copyFeedText() async {
+    await FlutterClipboard.copy(_feedContent);
   }
 }
