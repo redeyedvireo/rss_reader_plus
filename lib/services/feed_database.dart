@@ -188,6 +188,20 @@ class FeedDatabase {
     sqlfliteDb = database;
   }
 
+  DateTime timestampToDateTime(int timestamp) {
+    DateTime tempDateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+    if (tempDateTime.year < 2000) {
+      tempDateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    }
+
+    return tempDateTime;
+  }
+
+  int dateTimeToTimestamp(DateTime dateTime) {
+    return dateTime.millisecondsSinceEpoch;
+  }
+
   Future<List<Feed>> readFeeds() async {
     final feedMapList = await sqlfliteDb.rawQuery('SELECT * FROM $feedsTable');
 
@@ -202,9 +216,9 @@ class FeedDatabase {
         id: feedMap['feedid'],
         name: feedMap['name'],
         url: feedMap['url'],
-        dateAdded: DateTime.fromMillisecondsSinceEpoch(feedMap['added']),         // WARNING: This is stored as a Julian date
-        lastUpdated: DateTime.fromMillisecondsSinceEpoch(feedMap['lastupdated']), // WARNING: This is stored as a Julian date
-        lastPurged: DateTime.fromMillisecondsSinceEpoch(feedMap['lastpurged']),   // WARNING: This is stored as a Julian date
+        dateAdded: timestampToDateTime(feedMap['added']),         // WARNING: This is stored as a Julian date
+        lastUpdated: timestampToDateTime(feedMap['lastupdated']), // WARNING: This is stored as a Julian date
+        lastPurged: timestampToDateTime(feedMap['lastpurged']),   // WARNING: This is stored as a Julian date
         title: feedMap['title'],
         language: feedMap['language'],
         description: feedMap['description'],
@@ -224,15 +238,15 @@ class FeedDatabase {
       'name': feed.name,
       'url': feed.url,
       'parentid': feed.parentId,
-      'added': feed.dateAdded.millisecondsSinceEpoch ~/ 1000,
-      'lastupdated': feed.lastUpdated.millisecondsSinceEpoch ~/ 1000,
+      'added': dateTimeToTimestamp(feed.dateAdded),
+      'lastupdated': dateTimeToTimestamp(feed.lastUpdated),
       'title': feed.title,
       'language': feed.language,
       'description': feed.description,
       'webpagelink': feed.webPageLink,
       'favicon': feed.favicon,
       'image': feed.image,
-      'lastpurged': feed.lastPurged.millisecondsSinceEpoch ~/ 1000
+      'lastpurged': dateTimeToTimestamp(feed.lastPurged)
     });
     
     // Retrieve the newly-inserted item, so that its ID can be obtained
@@ -251,7 +265,7 @@ class FeedDatabase {
 
   Future<bool> writeLastPurged(int feedId, DateTime lastPurgedDateTime) async {
     final numRecordsUpdated = await sqlfliteDb.update(feedsTable, {
-      'lastpurged': lastPurgedDateTime.millisecondsSinceEpoch ~/ 1000
+      'lastpurged': dateTimeToTimestamp(lastPurgedDateTime)
     },
     where: 'feedid = ?',
     whereArgs: [ feedId ]);
@@ -293,8 +307,7 @@ class FeedDatabase {
   }
 
   FeedItem feedItemFromDbResult(dynamic dbResult, int feedId) {
-    int timestampRaw = dbResult['pubdatetime'];
-    int timestamp = timestampRaw * 1000;
+    int timestamp = dbResult['pubdatetime'];
 
     return FeedItem(
       title: dbResult['title'],
@@ -303,7 +316,7 @@ class FeedDatabase {
       description: dbResult['description'],
       encodedContent: dbResult['contentencoded'],
       categories: _splitCategories(dbResult['categories']),
-      publicationDatetime: DateTime.fromMillisecondsSinceEpoch(timestamp),
+      publicationDatetime: timestampToDateTime(timestamp),
       thumbnailLink: dbResult['thumbnaillink'],
       thumbnailWidth: dbResult['thumbnailwidth'],
       thumbnailHeight: dbResult['thumnailheight'],
@@ -330,7 +343,7 @@ class FeedDatabase {
   Future<int> deleteFeedItemsByDate(int feedId, DateTime targetDate, bool deleteUnreadItems) async {
     String tableName = feedIdToString(feedId);
     String whereClause = '';
-    List<int> args = [ targetDate.millisecondsSinceEpoch ~/ 1000 ];
+    List<int> args = [ dateTimeToTimestamp(targetDate) ];
 
     if (deleteUnreadItems) {
       whereClause = 'pubdatetime <= ?';
@@ -408,7 +421,7 @@ class FeedDatabase {
         'link': feedItem.link,
         'description': feedItem.description,
         'categories': _joinCategories(feedItem.categories),
-        'pubdatetime': feedItem.publicationDatetime.millisecondsSinceEpoch ~/ 1000,
+        'pubdatetime': dateTimeToTimestamp(feedItem.publicationDatetime),
         'thumbnaillink': feedItem.thumbnailLink,
         'thumbnailwidth': feedItem.thumbnailWidth,
         'thumbnailheight': feedItem.thumbnailHeight,

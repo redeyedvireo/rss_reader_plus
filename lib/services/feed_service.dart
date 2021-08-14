@@ -292,13 +292,13 @@ class FeedService {
           final result = await db.writeItemsOfInterest(itemsOfInterest);
 
           if (!result) {
-            print('[FeedService.fetchFeed] Error writing items of interest');
+            _logger.severe('[fetchFeed] Error writing items of interest');
           }
         }
 
         feedUpdated$.add(feedId);
       } catch (e) {
-        print('[FeedService.fetchFeed] $e');
+        _logger.severe('[fetchFeed] $e');
       }
     }
   }
