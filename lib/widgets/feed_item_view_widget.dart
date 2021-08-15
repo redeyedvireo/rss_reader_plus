@@ -34,8 +34,10 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
     super.initState();
 
     widget.feedService.feedItemSelected$.listen((feedItemId) {
-      setState(() {
-      });
+      if (mounted) {
+        setState(() {
+        });
+      }    
     });
 
     widget.feedService.feedSelected$.listen((feed) {
