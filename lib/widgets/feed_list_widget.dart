@@ -22,6 +22,7 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   double _previousScrollPosition = 0;      // Used to set scroll position after returning from another page
   List<Feed> _feeds;
   Map<int, int> _unreadCount;
+  bool editingOrder = false;
   
   @override
   void initState() {
@@ -73,34 +74,83 @@ class _FeedListWidgetState extends State<FeedListWidget> {
   }
 
   Widget _buildAll(BuildContext context, List<Feed> feeds, FeedService feedService, NotificationService notificationService) {
+    return Column(
+      children: [
+        _buildHeader(context),
+        Flexible(child: _buildFeedList(context, feeds, feedService, notificationService)),
+      ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+        Text('Feeds'),
+        editButtonIcon(),
+      ],),
+    );
+  }
+
+  void editButtonClicked() {
+    setState(() {
+      editingOrder = !editingOrder;
+    });
+  }
+
+  Widget editButtonIcon() {
+    return editingOrder ? IconButton(onPressed: editButtonClicked, icon: Icon(Icons.check))
+                        : IconButton(onPressed: editButtonClicked, icon: Icon(Icons.edit));
+  }
+
+  Widget _buildFeedList(BuildContext context, List<Feed> feeds, FeedService feedService, NotificationService notificationService) {
+    if (editingOrder) {
+      return _buildReorderableFeedList(context, feeds, feedService, notificationService);
+    } else {
+      return _buildNormalFeedList(context, feeds, feedService, notificationService);
+    }
+  }
+
+  Widget _buildNormalFeedList(BuildContext context, List<Feed> feeds, FeedService feedService, NotificationService notificationService) {
     _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
 
     return Container(
-      decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: Theme.of(context).dividerColor))
-            ),
       child: Padding(
         padding: const EdgeInsets.only(right: 0),
-        child: ReorderableListView(
-          scrollController: _controller,
-          children: [
-            for (int index = 0; index < feeds.length; index++)
-              _buildFeedRow(context, feeds[index], feedService, notificationService)
-          ],
-          onReorder: (int oldIndex, int newIndex) {
-            setState(() {
-              feedService.moveFeed(oldIndex, newIndex);
-            });
+        child: ListView.builder(
+          itemCount: feeds.length,
+          controller: _controller,
+          itemBuilder: (BuildContext context, int index) {
+            return _buildFeedRow(context, _feeds[index], feedService, notificationService);
           },
         ),
       ),
     );
   }
 
+  Widget _buildReorderableFeedList(BuildContext context, List<Feed> feeds, FeedService feedService, NotificationService notificationService) {
+    _controller = ScrollController(initialScrollOffset: _previousScrollPosition);
+
+    return ReorderableListView(
+      scrollController: _controller,
+      children: [
+        for (int index = 0; index < feeds.length; index++)
+          _buildFeedRow(context, feeds[index], feedService, notificationService)
+      ],
+      onReorder: (int oldIndex, int newIndex) {
+        setState(() {
+          feedService.moveFeed(oldIndex, newIndex);
+        });
+      },
+    );
+  }
+
   Widget _buildFeedRow(BuildContext context, Feed feed, FeedService feedService, NotificationService notificationService) {
     return Container(
       key: ValueKey(feed.id),
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
       color: _backgroundColor(feed, feedService),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
