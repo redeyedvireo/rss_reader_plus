@@ -173,7 +173,7 @@ class FeedService {
             final feedItem = await db.readFeedItem(itemOfInterest.feedId, itemOfInterest.guid);
             _feedItems[feedItem.guid] = feedItem;            
           } catch (e) {
-            print('[getFeedItems] Item of Interest error: ${e.message}');
+            _logger.severe('[getFeedItems] Item of Interest error: ${e.message}');
           }
         }
 
