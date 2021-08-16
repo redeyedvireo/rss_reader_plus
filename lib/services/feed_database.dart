@@ -1,6 +1,7 @@
 
 import 'dart:typed_data';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:rss_reader_plus/models/feed.dart';
@@ -17,6 +18,7 @@ class FeedDatabase {
   static const DB_FILE = 'Feeds.db';
   static const DB_VERSION = 1;
   Database sqlfliteDb;
+  Logger _logger;
 
   static final feedsTable = 'feeds';
   static final itemsOfInterestTable = 'itemsofinterest';
@@ -25,28 +27,39 @@ class FeedDatabase {
   static final adFiltersTable = 'adfilters';
   static final keystoreTable = 'keystore';
 
-  FeedDatabase();
+  FeedDatabase() {
+    _logger = Logger('FeedDatabase');
+  }
 
   /// Returns the Sqlflite database.
   static Future<Database> init() async {
-    final databaseDir = await getDatabaseDirectory();
+    Logger _tempLogger = Logger('FeedDatabaseStatic');
+
+    final databaseDir = await getDatabaseDirectory(_tempLogger);
 
     final path = join(databaseDir, DB_FILE);
+    
+    _tempLogger.info('[init] Opening database: $path');
 
-    sqfliteFfiInit();
-    final databaseFactory = databaseFactoryFfi;
-    return await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
-                                                                version: DATABASE_VERSION,
-                                                                onCreate: FeedDatabase.onCreate));
+    try {
+      sqfliteFfiInit();
+      final databaseFactory = databaseFactoryFfi;
+
+      return await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
+                                                                  version: DATABASE_VERSION,
+                                                                  onCreate: FeedDatabase.onCreate));      
+    } catch (e) {
+      _tempLogger.severe('[init] $e');
+    }
   }
 
-  static Future<String> getDatabaseDirectory() async {
+  static Future<String> getDatabaseDirectory(Logger logger) async {
     String tempDirectory;
     String downloadsDirectory;
     String appSupportDirectory;
     String documentsDirectory;
     final PathProviderWindows provider = PathProviderWindows();
-
+ 
     try {
       tempDirectory = await provider.getTemporaryPath();
     } catch (exception) {
@@ -70,16 +83,19 @@ class FeedDatabase {
       appSupportDirectory = 'Failed to get app support directory: $exception';
     }
 
-    print('temp dir: $tempDirectory');
-    print('downloads dir: $downloadsDirectory');
-    print('documents dir: $documentsDirectory');
-    print('appSupport dir: $appSupportDirectory');
+    logger.info('temp dir: $tempDirectory');
+    logger.info('downloads dir: $downloadsDirectory');
+    logger.info('documents dir: $documentsDirectory');
+    logger.info('appSupport dir: $appSupportDirectory');
 
     // TODO: Use the downloads directory as the temporary place for the feeds database
     return downloadsDirectory;
   }
 
   static Future<void> onCreate(Database db, int version) async {
+    Logger _tempLogger = Logger('FeedDatabaseStatic');
+
+    _tempLogger.info('[onCreate] Creating tables...');
     createTables(db);
   }
 
