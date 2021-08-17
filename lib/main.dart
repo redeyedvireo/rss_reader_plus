@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
+import 'package:rss_reader_plus/pages/app_info_page.dart';
 import 'package:rss_reader_plus/pages/edit_ad_filters_page.dart';
 import 'package:rss_reader_plus/pages/global_filters_page.dart';
 import 'package:rss_reader_plus/pages/language_filters_page.dart';
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
         'languagefilters': (BuildContext context) => LanguageFiltersPage(),
         'adfilters': (BuildContext context) => AdFiltersPage(),
         'preferences': (BuildContext context) => PreferencesPage(),
+        'app_info': (BuildContext context) => AppInfoPage(),
       },
     ));
   }

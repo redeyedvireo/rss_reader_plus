@@ -173,6 +173,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         Divider(),
         ListTile(
+          leading: Icon(Icons.info),
+          title: Text('App info'),
+          onTap: () async {
+            Navigator.pop(context);
+            await _appInfo();
+          },
+        ),
+        ListTile(
           leading: Icon(Icons.settings),
           title: Text('Settings'),
           onTap: () async {
@@ -230,5 +238,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _preferences() async {
     await Navigator.pushNamed(context, 'preferences');
+  }
+
+  Future<void> _appInfo() async {
+    await Navigator.pushNamed(context, 'app_info');
   }
 }

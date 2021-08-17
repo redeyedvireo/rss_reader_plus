@@ -17,6 +17,7 @@ const DATABASE_VERSION = 1;
 class FeedDatabase {
   static const DB_FILE = 'Feeds.db';
   static const DB_VERSION = 1;
+  static String databasePath = '';
   Database sqlfliteDb;
   Logger _logger;
 
@@ -37,17 +38,18 @@ class FeedDatabase {
 
     final databaseDir = await getDatabaseDirectory(_tempLogger);
 
-    final path = join(databaseDir, DB_FILE);
+    FeedDatabase.databasePath = join(databaseDir, DB_FILE);
     
-    _tempLogger.info('[init] Opening database: $path');
+    _tempLogger.info('[init] Opening database: $FeedDatabase.databasePath');
 
     try {
       sqfliteFfiInit();
       final databaseFactory = databaseFactoryFfi;
 
-      return await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
-                                                                  version: DATABASE_VERSION,
-                                                                  onCreate: FeedDatabase.onCreate));      
+      return await databaseFactory.openDatabase(FeedDatabase.databasePath,
+                                                  options: OpenDatabaseOptions(
+                                                  version: DATABASE_VERSION,
+                                                  onCreate: FeedDatabase.onCreate));      
     } catch (e) {
       _tempLogger.severe('[init] $e');
     }
