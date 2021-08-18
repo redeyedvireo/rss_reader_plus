@@ -9,20 +9,24 @@ import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/language_filter_service.dart';
 import 'package:rss_reader_plus/services/prefs_service.dart';
 import 'package:rss_reader_plus/services/update_service.dart';
+import 'package:path/path.dart';
 
 class InitializationService {
+  static const LOG_FILE = 'rss_reader_plus.log';
   PrefsService _prefsService;
   FeedDatabase _feedDb;
   UpdateService _updateService;
   LanguageFilterService _languageFilterService;
   AdFilterService _adFilterService;
   bool _initialized;
+  String _logFilePath;
   Logger _logger;
   File _logFile;
   IOSink _logFileSink;
 
   InitializationService(BuildContext context) {
     _initialized = false;
+    _logFilePath = '';
     _logger = Logger('InitializationService');
 
     _prefsService = Provider.of<PrefsService>(context, listen: false);
@@ -52,13 +56,17 @@ class InitializationService {
     }
   }
 
+  String get logFilePath => _logFilePath;
+
   Future<void> _initLogging() async {
     final PathProviderWindows provider = PathProviderWindows();
     String appSupportDirectory;
 
     try {
       appSupportDirectory = await provider.getApplicationSupportPath();
-      _logFile = File('$appSupportDirectory/rss_reader_plus.log');
+      _logFilePath = join(appSupportDirectory, LOG_FILE);
+
+      _logFile = File(_logFilePath);
       _logFileSink = _logFile.openWrite(mode: FileMode.append);
     } catch (exception) {
       appSupportDirectory = 'Failed to get app support directory: $exception';
