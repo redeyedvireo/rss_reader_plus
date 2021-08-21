@@ -1,10 +1,15 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/services/feed_database.dart';
 import 'package:rss_reader_plus/services/initialization_service.dart';
 import 'package:rss_reader_plus/services/prefs_service.dart';
+import 'package:rss_reader_plus/util/file_reader.dart';
 import 'package:rss_reader_plus/widgets/simple_table.dart';
+import 'package:html/parser.dart' as htmlparser;
+import 'package:html/dom.dart' as dom;
+
 
 class AppInfoPage extends StatefulWidget {
   const AppInfoPage();
@@ -17,6 +22,7 @@ class _AppInfoPageState extends State<AppInfoPage> {
   String _prefsFilePath = '';
   String _databaseFilePath = '';
   String _logFilePath = '';
+  String _aboutString = '';
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +55,7 @@ class _AppInfoPageState extends State<AppInfoPage> {
     _prefsFilePath = await prefsService.getPrefFilePath();
     _databaseFilePath = FeedDatabase.databasePath;
     _logFilePath = initializationService.logFilePath;
+    _aboutString = await FileReader.readAboutFile();
   }
 
   Widget _buildAll(BuildContext context) {
@@ -61,6 +68,8 @@ class _AppInfoPageState extends State<AppInfoPage> {
   }
 
   Widget _buildContent(BuildContext context) {
+    dom.Document document = htmlparser.parse(_aboutString);
+
     return Center(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
@@ -68,11 +77,12 @@ class _AppInfoPageState extends State<AppInfoPage> {
           width: 800,
           child: Column(
             children: [
-              Text('App Info',
-                style: TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold)),
-              SizedBox(height: 80.0,),
+              Html.fromDom(
+                onImageError: (Object exception, StackTrace stackTrace) {
+                  print('Image error');
+                },
+                document: document),
+              SizedBox(height: 70.0,),
               SimpleTable(
                 verticalPadding: 3.0,
                 boldLeftColumn: true,
