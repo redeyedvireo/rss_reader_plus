@@ -13,6 +13,9 @@ class PreferencesPage extends StatefulWidget {
 class _PreferencesPageState extends State<PreferencesPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController _updateTimeController = TextEditingController();
+  TextEditingController _networkProxyUsernameController = TextEditingController();
+  TextEditingController _networkProxyPasswordController = TextEditingController();
+  bool _useNetworProxy;
   bool _initialized;
 
 @override
@@ -30,6 +33,10 @@ class _PreferencesPageState extends State<PreferencesPage> {
       _initialized = true;
       final updateRate = _prefsService.getFeedUpdateRate();
       _updateTimeController.text = updateRate.toString();
+      _networkProxyUsernameController.text = _prefsService.getNetworkProxyUsername().toString();
+      _networkProxyPasswordController.text = _prefsService.getNetworkProxyPassword().toString();
+
+      _useNetworProxy = _prefsService.getUseNetworkProxy();
     }
 
     return _buildAll(context, _prefsService, _updateService);
@@ -58,6 +65,10 @@ class _PreferencesPageState extends State<PreferencesPage> {
   Future<void> savePrefs(PrefsService prefsService, UpdateService updateService) async {
     final updateRate = int.parse(_updateTimeController.text);
     await prefsService.setFeedUpdateRate(updateRate);
+    await prefsService.setUseNetworkProxy(_useNetworProxy);
+    await prefsService.setNetworkProxyUsername(_networkProxyUsernameController.text);
+    await prefsService.setNetworkProxyPassword(_networkProxyPasswordController.text);
+    
     updateService.setUpdateRate(updateRate);
   }
 
@@ -98,7 +109,50 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   //     }
                   //   });
                   // },
-                )
+                ),
+                SizedBox(height: 10,),
+                Divider(),
+                Text('Network Proxy',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18
+                  ),),
+                  CheckboxListTile(
+                    title: Text('Use Network Proxy'),
+                    value: _useNetworProxy,
+                    onChanged: (bool value) {
+                    setState(() {
+                      _useNetworProxy = value;
+                    });
+                  }),
+                  TextFormField(
+                    controller: _networkProxyUsernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Network proxy username',
+                      hintText: 'Enter your network proxy username'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'This field is required';
+                      }
+
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _networkProxyPasswordController,
+                    decoration: InputDecoration(
+                      labelText: 'Network proxy password',
+                      hintText: 'Enter your network proxy password'),
+                    keyboardType: TextInputType.visiblePassword,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'This field is required';
+                      }
+
+                      return null;
+                    },
+                  ),
               ]
             ),
           ),

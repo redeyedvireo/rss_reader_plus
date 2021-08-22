@@ -7,6 +7,9 @@ import 'package:path/path.dart';
 class PrefsService {
   static const PREFS_FILE = 'shared_preferences.json';
   static const FEED_UPDATE_RATE = 'feed_update_rate';         // Update rate, in minutes
+  static const USE_NETWORK_PROXY = 'use_network_proxy';
+  static const NETWORK_PROXY_USERNAME = 'network_proxy_username';
+  static const NETWORK_PROXY_PASSWORD = 'network_proxy_password';
   Logger _logger;
   
   SharedPreferences prefs;
@@ -43,6 +46,41 @@ class PrefsService {
     if (prefs != null) {
       _logger.info('Setting feed update rate at $updateRate');
       await prefs.setInt(FEED_UPDATE_RATE, updateRate);
+    }
+  }
+
+  bool getUseNetworkProxy() {
+    return prefs != null ? prefs.getBool(USE_NETWORK_PROXY) ?? false : false;
+  }
+
+  Future<void> setUseNetworkProxy(bool useProxy) async {
+    if (prefs != null) {
+      _logger.info('Setting use network proxy to $useProxy');
+      await prefs.setBool(USE_NETWORK_PROXY, useProxy);
+    }
+  }
+
+  String getNetworkProxyUsername() {
+    return prefs != null ? prefs.getString(NETWORK_PROXY_USERNAME) ?? '' : '';
+  }
+
+  Future<void> setNetworkProxyUsername(String username) async {
+    if (prefs != null) {
+      _logger.info('Setting network proxy username to $username');
+      await prefs.setString(NETWORK_PROXY_USERNAME, username);
+    }
+  }
+
+  String getNetworkProxyPassword() {
+    return prefs != null ? prefs.getString(NETWORK_PROXY_PASSWORD) ?? '' : '';
+  }
+
+  Future<void> setNetworkProxyPassword(String password) async {
+    if (prefs != null) {
+      _logger.info('Setting network proxy password to $password');    // TODO: Delete this once this feature works
+
+      // TODO: Encrypt this first!
+      await prefs.setString(NETWORK_PROXY_PASSWORD, password);
     }
   }
 }
