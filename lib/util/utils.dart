@@ -1,5 +1,6 @@
 
 import 'package:jiffy/jiffy.dart';
+import 'package:xxtea/xxtea.dart';
 
 String feedIdToString(int feedId) {
   String feedIdStr = feedId.toString();
@@ -78,4 +79,12 @@ String onlyNumbers(String inString) {
 
 bool isDigit(String character) {
   return int.tryParse(character) != null;
+}
+
+String encrypt(String inString, String encryptionKey) {
+  return xxteaEncryptToString(inString, encryptionKey);
+}
+
+String decrypt(String encryptedString, String encryptionKey) {
+  return xxteaDecryptToString(encryptedString, encryptionKey);
 }
