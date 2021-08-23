@@ -1,3 +1,5 @@
+import 'package:rss_reader_plus/services/network_service.dart';
+
 import './feed_parser.dart';
 import 'package:rss_reader_plus/parser/atom_parser.dart';
 import 'package:rss_reader_plus/parser/rss_v1_parser.dart';
@@ -12,10 +14,10 @@ class ParserEntry {
 }
 
 class FeedIdentifier {
-  static FeedParser getFeedParser(String rawFeedData) {
-    final rssV1Parser = RssV1Parser(rawFeedData);
-    final rssV2Parser = RssV2Parser(rawFeedData);
-    final atomParser = AtomParser(rawFeedData);
+  static FeedParser getFeedParser(String rawFeedData, NetworkService networkService) {
+    final rssV1Parser = RssV1Parser(rawFeedData, networkService);
+    final rssV2Parser = RssV2Parser(rawFeedData, networkService);
+    final atomParser = AtomParser(rawFeedData, networkService);
 
     List<ParserEntry> potentialParsers = [];
 

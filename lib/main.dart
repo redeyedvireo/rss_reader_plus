@@ -13,6 +13,7 @@ import 'package:rss_reader_plus/services/filter_service.dart';
 import 'package:rss_reader_plus/services/initialization_service.dart';
 import 'package:rss_reader_plus/services/keystore_service.dart';
 import 'package:rss_reader_plus/services/language_filter_service.dart';
+import 'package:rss_reader_plus/services/network_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
 import 'package:rss_reader_plus/services/prefs_service.dart';
 import 'package:rss_reader_plus/services/purge_service.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(providers: [
       Provider<PrefsService>(create: (context) => PrefsService()),
+      Provider<NetworkService>(create: (context) => NetworkService(context)),
       Provider<NotificationService>(create: (context) => NotificationService()),
       Provider<FeedDatabase>(create: (context) => FeedDatabase()),
       Provider<KeystoreService>(create: (context) => KeystoreService(context)),

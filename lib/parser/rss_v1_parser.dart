@@ -12,9 +12,10 @@ import 'package:rss_reader_plus/util/utils.dart';
 class RssV1Parser extends FeedParser{
   String rawFeedData;
   Rss1Feed parsedFeed;
+  NetworkService networkService;
   bool validFeed = false;
 
-  RssV1Parser(this.rawFeedData);
+  RssV1Parser(this.rawFeedData, networkService);
 
   bool parse() {
     try {
@@ -33,7 +34,7 @@ class RssV1Parser extends FeedParser{
 
     if (parsedFeed.image != null) {
       final imageUrl = getNullableItem(parsedFeed.image, '');
-      faviconData = await NetworkService.getIcon(imageUrl);
+      faviconData = await networkService.getIcon(imageUrl);
     }
     
     final dublinCore = getNullableItem(parsedFeed.dc, null);

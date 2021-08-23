@@ -1,14 +1,24 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/services/prefs_service.dart';
 
 class NetworkService {
+  PrefsService _prefsService;
 
-  static IOClient createProxyAwareHttpClient() {
+  NetworkService(BuildContext context) {
+    _prefsService = Provider.of<PrefsService>(context, listen: false);
+  }
+
+  IOClient createProxyAwareHttpClient() {
     HttpClient httpClient = new HttpClient();
 
+    // TODO: Where to insert proxy username and password?
+    
     // From https://flutterigniter.com/debugging-network-requests/
 
     // Make sure to replace <YOUR_LOCAL_IP> with 
@@ -33,12 +43,17 @@ class NetworkService {
     return myClient;
   }
 
-  static Future<String> getFeed(String url) async {
-    // final client = createProxyAwareHttpClient();
+  Future<String> getFeed(String url) async {
+    http.Response response;
 
     final uri = Uri.parse(url);
-    // final response = await client.get(uri);
-    final response = await http.get(uri);
+
+    if (_prefsService.getUseNetworkProxy()) {
+      final client = createProxyAwareHttpClient();
+      response = await client.get(uri);
+    } else {
+      response = await http.get(uri);
+    }
 
     if (response.statusCode == 200) {
       return response.body;
@@ -47,12 +62,17 @@ class NetworkService {
     }
   }
 
-  static Future<Uint8List> getIcon(String url) async {
-    // final client = createProxyAwareHttpClient();
-
+  Future<Uint8List> getIcon(String url) async {
+    http.Response response;
+    
     final uri = Uri.parse(url);
-    // final response = await client.get(uri);
-    final response = await http.get(uri);
+
+    if (_prefsService.getUseNetworkProxy()) {
+      final client = createProxyAwareHttpClient();
+      response = await client.get(uri);
+    } else {
+      response = await http.get(uri);
+    }
 
     if (response.statusCode == 200) {
       return response.bodyBytes;

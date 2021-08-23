@@ -24,6 +24,7 @@ class FeedService {
   NotificationService _notificationService;
   FilterService _filterService;
   KeystoreService _keystoreService;
+  NetworkService _networkService;
   Logger _logger;
   List<Feed> _feeds;                  // Feeds, ordered by the feed-order field in the database
   Map<String, FeedItem> _feedItems;
@@ -43,6 +44,7 @@ class FeedService {
     _notificationService = Provider.of<NotificationService>(context, listen: false);
     _filterService = Provider.of<FilterService>(context, listen: false);
     _keystoreService = Provider.of<KeystoreService>(context, listen: false);
+    _networkService = Provider.of<NetworkService>(context, listen: false);
     _logger = Logger('FeedService');
 
     _feeds = [];
@@ -257,10 +259,10 @@ class FeedService {
     if (feedIndex != -1) {
       final feed = _feeds[feedIndex];
       final feedUrl = feed.url;
-      final feedData = await NetworkService.getFeed(feedUrl);
+      final feedData = await _networkService.getFeed(feedUrl);
 
       try {
-        final feedParser = FeedIdentifier.getFeedParser(feedData);
+        final feedParser = FeedIdentifier.getFeedParser(feedData, _networkService);
 
         final existingGuids = await db.readGuids(feedId);
 
@@ -331,8 +333,8 @@ class FeedService {
   Future<int> newFeed(String url) async {
     // TODO: Should throw an error if necessary; the contents of the exception
     //  will be the error message.
-    final feedContents = await NetworkService.getFeed(url);
-    final feedParser = FeedIdentifier.getFeedParser(feedContents);
+    final feedContents = await _networkService.getFeed(url);
+    final feedParser = FeedIdentifier.getFeedParser(feedContents, _networkService);
 
     if (feedParser == null) {
       throw FormatException('Error parsing feed');

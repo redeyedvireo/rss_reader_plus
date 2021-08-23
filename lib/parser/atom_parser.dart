@@ -6,14 +6,16 @@ import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/parser/feed_parser.dart';
 import 'package:rss_reader_plus/services/network_service.dart';
+import 'package:rss_reader_plus/services/prefs_service.dart';
 import 'package:rss_reader_plus/util/utils.dart';
 
 class AtomParser extends FeedParser {
   String rawFeedData;
   AtomFeed parsedFeed;
+  NetworkService networkService;
   bool validFeed = false;
 
-  AtomParser(this.rawFeedData);
+  AtomParser(this.rawFeedData, networkService);
 
   bool parse() {
     try {
@@ -33,7 +35,7 @@ class AtomParser extends FeedParser {
     Uint8List faviconData = Uint8List(0);
     
     if (iconPath.isNotEmpty) {
-      faviconData = await NetworkService.getIcon('feedUrl/$iconPath');
+      faviconData = await networkService.getIcon('feedUrl/$iconPath');
     }
     
     return Feed(title: getNullableItem(parsedFeed.title, 'Untitled feed'),
