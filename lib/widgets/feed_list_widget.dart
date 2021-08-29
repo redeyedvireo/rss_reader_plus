@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/notification_service.dart';
@@ -8,8 +10,9 @@ import 'package:rss_reader_plus/services/notification_service.dart';
 class FeedListWidget extends StatefulWidget {
   FeedService feedService;
   NotificationService notificationService;
+  Function(int) onFeedSelectedFn;
 
-  FeedListWidget(this.feedService, this.notificationService);
+  FeedListWidget(this.feedService, this.notificationService, {this.onFeedSelectedFn});
 
   @override
   _FeedListWidgetState createState() => _FeedListWidgetState();
@@ -155,10 +158,15 @@ class _FeedListWidgetState extends State<FeedListWidget> {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: () async {
+          onTap: () {
             _previousScrollPosition = _controller.position.pixels;
             notificationService.setStatusMessage('${feed.name} selected', timeout: 1);
             widget.feedService.selectFeed(feed.id);
+            Provider.of<AppState>(context, listen: false).setActiveFeed(feed.id);
+            
+            if (widget.onFeedSelectedFn != null) {
+              widget.onFeedSelectedFn(feed.id);
+            }
             setState(() { });
           },
           onSecondaryTapUp: (TapUpDetails details) async {

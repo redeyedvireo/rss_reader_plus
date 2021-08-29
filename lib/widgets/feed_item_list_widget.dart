@@ -3,14 +3,16 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/models/feed_item.dart';
 import 'package:rss_reader_plus/services/feed_service.dart';
 import 'package:rss_reader_plus/services/language_filter_service.dart';
 
 class FeedItemListWidget extends StatefulWidget {
   FeedService feedService;
+  Function(String) onFeedItemSelected;
 
-  FeedItemListWidget(this.feedService);
+  FeedItemListWidget(this.feedService, {this.onFeedItemSelected});
 
   @override
   _FeedItemListWidgetState createState() => _FeedItemListWidgetState();
@@ -153,6 +155,13 @@ class _FeedItemListWidgetState extends State<FeedItemListWidget> {
             widget.feedService.selectFeedItem(feedItem.guid);
             await widget.feedService.setFeedItemReadFlag(feedItem.guid, feedItem.parentFeedId, true);
             _previousScrollPosition = _controller.position.pixels;
+
+            Provider.of<AppState>(context, listen: false).setCurrentFeedItem(feedItem.guid);
+
+            if (widget.onFeedItemSelected != null) {
+              widget.onFeedItemSelected(feedItem.guid);
+            }
+
             setState(() {
               _feedItems[index].read = true;
             });

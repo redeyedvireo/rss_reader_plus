@@ -56,6 +56,7 @@ class InitializationService {
     }
   }
 
+  bool get isInitialized => _initialized;
   String get logFilePath => _logFilePath;
 
   Future<void> _initLogging() async {

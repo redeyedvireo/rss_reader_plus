@@ -51,7 +51,7 @@ class _FeedItemViewWidgetState extends State<FeedItemViewWidget> {
   Widget build(BuildContext context) {
     _languageFilterService = Provider.of<LanguageFilterService>(context, listen: false);
     _adFilterService = Provider.of<AdFilterService>(context, listen: false);
-    FeedItem feedItem = widget.feedService.selectedFeedItem;
+    FeedItem feedItem = widget.feedService.selectedFeedItem;    // TODO: Get from AppState
 
     if (feedItem.isValid) {
       _feedContent = feedItem.encodedContent.length > 0 ? feedItem.encodedContent : feedItem.description;

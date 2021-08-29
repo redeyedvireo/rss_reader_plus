@@ -14,6 +14,10 @@ import '../services/feed_service.dart';
 
 enum ConfigAction { ManageGlobalFilters, EditAdFilter }
 
+// In mobile mode (ie, for a mobile phone), indicates which view
+// is currently being shown.
+enum ViewMode { FeedList, FeedItemList, FeedView}
+
 // Pane size constraints
 const feedPaneWidth = 250.0;
 const feedItemPaneHeight = 300.0;
@@ -25,9 +29,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  ViewMode _viewMode;
+  bool _isDesktop;
+
 
   @override
   void initState() {
+    _viewMode = ViewMode.FeedList;
+    _isDesktop = true;
+
     super.initState();
   }
 
@@ -38,6 +48,37 @@ class _MyHomePageState extends State<MyHomePage> {
     NotificationService _notificationService = Provider.of<NotificationService>(context);
     PurgeService _purgeService = Provider.of<PurgeService>(context, listen: false);
     
+    _isDesktop = MediaQuery.of(context).size.width > 500;
+
+
+    // _feedService.feedSelected$.listen((feedId) {
+    //   if (!_isDesktop) {
+    //     ViewMode nextState;
+
+    //     switch (_viewMode) {
+    //       case ViewMode.FeedList:
+    //         nextState = ViewMode.FeedItemList;    
+    //         break;
+
+    //       case ViewMode.FeedItemList:
+    //         nextState = ViewMode.FeedView;
+    //         break;
+
+    //       case ViewMode.FeedView:
+    //         nextState = ViewMode.FeedList;
+    //         break;
+    //     }
+
+    //     _viewMode = nextState;
+
+    //     // if (mounted) {
+    //     //   setState(() {
+    //     //     _viewMode = nextState;
+    //     //   });
+    //     // }
+    //   }
+    // });
+
     return FutureBuilder(
       future: _mainInit(_initializationService),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -59,8 +100,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  newFeedSelected() {
+    print('[HomePage] New Feed Selected!');
+  }
+
   Future<void> _mainInit(InitializationService initializationService) async {
-    await initializationService.initialize();
+    if (!initializationService.isInitialized) {
+      await initializationService.initialize();
+    }
   }
 
   Widget _buildAll(BuildContext context,
@@ -80,7 +127,27 @@ class _MyHomePageState extends State<MyHomePage> {
           }, icon: Icon(Icons.refresh),),
         ],
       ),
-      body: Container(
+      body: _buildContent(context, feedService, notificationService, purgeService),
+      drawer: _createDrawer(),
+    );
+  }
+
+  Widget _buildContent(BuildContext context,
+                       FeedService feedService,
+                       NotificationService notificationService,
+                       PurgeService purgeService) {
+    if (_isDesktop) {
+      return _buildForDesktop(context, feedService, notificationService, purgeService);
+    } else {
+      return _buildForMobile(context, feedService, notificationService, purgeService);
+    }
+  }
+
+  Widget _buildForDesktop(BuildContext context,
+                          FeedService feedService,
+                          NotificationService notificationService,
+                          PurgeService purgeService) {
+    return Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -131,9 +198,55 @@ class _MyHomePageState extends State<MyHomePage> {
             StatusBarWidget(notificationService)
           ],
         ),
-      ),
-      drawer: _createDrawer(),
+      );
+  }
+
+  Widget _buildForMobile(BuildContext context,
+                         FeedService feedService,
+                         NotificationService notificationService,
+                         PurgeService purgeService) {
+    switch (_viewMode) {
+      case ViewMode.FeedList:
+        return _buildFeedListWidget(context, feedService, notificationService, purgeService);
+      
+      case ViewMode.FeedItemList:
+        return _buildFeedItemListWidget(context, feedService, notificationService, purgeService);
+
+      case ViewMode.FeedView:
+        return _buildFeedViewWidget(context, feedService, notificationService, purgeService);
+    }
+
+    return Center(child: Text(''),);    // Should never get here
+  }
+
+  Widget _buildFeedListWidget(BuildContext context,
+                              FeedService feedService,
+                              NotificationService notificationService,
+                              PurgeService purgeService) {
+    return Container(
+      child: FeedListWidget(feedService, notificationService),
     );
+  }
+
+  Widget _buildFeedItemListWidget(BuildContext context,
+                                  FeedService feedService,
+                                  NotificationService notificationService,
+                                  PurgeService purgeService) {
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FeedItemHeaderWidget(feedService, notificationService, purgeService),
+        Expanded(child: FeedItemListWidget(feedService)),
+      ],
+    );
+  }
+
+  Widget _buildFeedViewWidget(BuildContext context,
+                              FeedService feedService,
+                              NotificationService notificationService,
+                              PurgeService purgeService) {
+    return FeedItemViewWidget(feedService, notificationService);
   }
 
   Widget _createDrawer() {

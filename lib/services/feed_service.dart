@@ -84,9 +84,9 @@ class FeedService {
     if (_selectedFeedId != feedId) {
       _selectedFeedItem = '';
       _selectedFeedId = feedId;
-      feedSelected$.add(feedId);
       _feedItems = {};
       _feedItemsLoaded = false;
+      feedSelected$.add(feedId);
     }
   }
 

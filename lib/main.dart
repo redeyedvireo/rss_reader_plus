@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rss_reader_plus/models/app_state.dart';
 import 'package:rss_reader_plus/pages/app_info_page.dart';
 import 'package:rss_reader_plus/pages/edit_ad_filters_page.dart';
+import 'package:rss_reader_plus/pages/feed_item_list_page.dart';
+import 'package:rss_reader_plus/pages/feed_list_page.dart';
+import 'package:rss_reader_plus/pages/feed_view_page.dart';
 import 'package:rss_reader_plus/pages/global_filters_page.dart';
 import 'package:rss_reader_plus/pages/language_filters_page.dart';
 import 'package:rss_reader_plus/pages/preferences_page.dart';
@@ -29,6 +34,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(providers: [
+      ChangeNotifierProvider<AppState>(create: (_) => AppState()),
       Provider<PrefsService>(create: (context) => PrefsService()),
       Provider<NetworkService>(create: (context) => NetworkService(context)),
       Provider<NotificationService>(create: (context) => NotificationService()),
@@ -48,9 +54,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/',
+      // initialRoute: Platform.isWindows ? 'homewindows' : 'homeandroid',
+      initialRoute: 'homeandroid',      // For debugging
       routes: {
-        '/': (BuildContext context) => MyHomePage(),
+        'homewindows': (BuildContext context) => MyHomePage(),
+        'homeandroid': (BuildContext context) => FeedListPage(),
+        'feeditemlist': (BuildContext context) => FeedItemListPage(),
+        'feedview': (BuildContext context) => FeedViewPage(),
         'globalfilters': (BuildContext context) => GlobalFiltersPage(),
         'languagefilters': (BuildContext context) => LanguageFiltersPage(),
         'adfilters': (BuildContext context) => AdFiltersPage(),
